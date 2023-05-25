@@ -27,10 +27,6 @@ let package = Package(
             name: "WorkflowUI",
             targets: ["WorkflowUI"]
         ),
-        .library(
-            name: "WorkflowSwiftUI",
-            targets: ["WorkflowSwiftUI"]
-        ),
 
         // MARK: WorkflowReactiveSwift
 
@@ -89,11 +85,6 @@ let package = Package(
             name: "WorkflowUITests",
             dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
             path: "WorkflowUI/Tests"
-        ),
-        .target(
-            name: "WorkflowSwiftUI",
-            dependencies: ["Workflow"],
-            path: "WorkflowSwiftUI/Sources"
         ),
 
         // MARK: WorkflowReactiveSwift
