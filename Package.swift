@@ -34,10 +34,13 @@ let package = Package(
             name: "WorkflowReactiveSwift",
             targets: ["WorkflowReactiveSwift"]
         ),
-        .library(
-            name: "WorkflowReactiveSwiftTesting",
-            targets: ["WorkflowReactiveSwiftTesting"]
-        ),
+
+		// MARK: WorkflowConcurrency
+
+		.library(
+			name: "WorkflowConcurrency",
+			targets: ["WorkflowConcurrency"]
+		),
 
         // MARK: ViewEnvironment
 
@@ -94,21 +97,14 @@ let package = Package(
             dependencies: ["ReactiveSwift", "Workflow"],
             path: "WorkflowReactiveSwift/Sources"
         ),
-        .testTarget(
-            name: "WorkflowReactiveSwiftTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
-            path: "WorkflowReactiveSwift/Tests"
-        ),
-        .target(
-            name: "WorkflowReactiveSwiftTesting",
-            dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
-            path: "WorkflowReactiveSwift/Testing"
-        ),
-        .testTarget(
-            name: "WorkflowReactiveSwiftTestingTests",
-            dependencies: ["WorkflowReactiveSwiftTesting"],
-            path: "WorkflowReactiveSwift/TestingTests"
-        ),
+
+		// MARK: WorkflowConcurrency
+
+		.target(
+			name: "WorkflowConcurrency",
+			dependencies: ["Workflow"],
+			path: "WorkflowConcurrency/Sources"
+		),
 
         // MARK: ViewEnvironment
 
