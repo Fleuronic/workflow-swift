@@ -51,10 +51,7 @@ let package = Package(
             targets: ["ViewEnvironment"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1"),
-        .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.44.14"),
-    ],
+    dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1")],
     targets: [
         // MARK: Workflow
 
