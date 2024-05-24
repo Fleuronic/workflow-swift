@@ -35,7 +35,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 
     init(
         workflow: WorkflowType,
-        key: String = "",
+        key: String = "0",
         parentSession: WorkflowSession? = nil,
         observer: WorkflowObserver? = nil
     ) {

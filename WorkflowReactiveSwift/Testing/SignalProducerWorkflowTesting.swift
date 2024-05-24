@@ -32,7 +32,7 @@ extension RenderTester {
     ///   - key: Key to expect this `Workflow` to be rendered with.
     public func expectSignalProducer<OutputType>(
         producingOutput output: OutputType? = nil,
-        key: String = "",
+        key: String = "0",
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
         expectWorkflow(
@@ -51,7 +51,7 @@ extension RenderTester {
     ///   - key: Key to expect this `Workflow` to be rendered with.
     public func expectSignalProducer<OutputType>(
         outputType: OutputType.Type,
-        key: String = "",
+        key: String = "0",
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
         expectWorkflow(

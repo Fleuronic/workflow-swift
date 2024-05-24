@@ -30,7 +30,7 @@ extension RenderTester {
     public func expect<ExpectedWorkerType: Worker>(
         worker: ExpectedWorkerType,
         producingOutput output: ExpectedWorkerType.Output? = nil,
-        key: String = "",
+        key: String = "0",
         file: StaticString = #file, line: UInt = #line
     ) -> RenderTester<WorkflowType> {
         expectWorkflow(
