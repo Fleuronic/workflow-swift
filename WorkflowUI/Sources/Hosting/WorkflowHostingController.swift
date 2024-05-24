@@ -77,6 +77,7 @@ public final class WorkflowHostingController<ScreenType, Output>: UIViewControll
         workflowHost.update(workflow: workflow.asAnyWorkflow())
     }
 
+    @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
