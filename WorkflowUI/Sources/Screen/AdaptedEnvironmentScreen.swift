@@ -17,7 +17,6 @@
 #if canImport(UIKit)
 
 import Foundation
-import ViewEnvironment
 
 /// Wraps a `Screen` tree with a modified `ViewEnvironment`.
 ///
