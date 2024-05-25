@@ -17,7 +17,7 @@
 import os.signpost
 
 private extension OSLog {
-    static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
+    static let worker = OSLog(subsystem: "com.squareup.Workflow", category: "Worker")
 }
 
 // Logs Worker events to OSLog

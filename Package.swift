@@ -37,13 +37,6 @@ let package = Package(
             targets: ["WorkflowReactiveSwift"]
         ),
 
-		// MARK: WorkflowConcurrency
-
-		.library(
-			name: "WorkflowConcurrency",
-			targets: ["WorkflowConcurrency"]
-		),
-
         // MARK: ViewEnvironment
 
         .library(
@@ -96,14 +89,6 @@ let package = Package(
             dependencies: ["ReactiveSwift", "Workflow"],
             path: "WorkflowReactiveSwift/Sources"
         ),
-
-		// MARK: WorkflowConcurrency
-
-		.target(
-			name: "WorkflowConcurrency",
-			dependencies: ["Workflow"],
-			path: "WorkflowConcurrency/Sources"
-		),
 
         // MARK: ViewEnvironment
 

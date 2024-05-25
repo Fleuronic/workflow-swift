@@ -15,7 +15,6 @@
  */
 
 import Foundation
-import Workflow
 
 /// Workers define a unit of asynchronous work.
 ///
