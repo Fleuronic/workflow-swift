@@ -152,7 +152,7 @@ public struct RenderTester<WorkflowType: Workflow> {
 	///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
 	public func expectWorkflow<ExpectedWorkflowType: Workflow>(
 		type: ExpectedWorkflowType.Type,
-		key: String = "0",
+		key: String = "",
 		producingRendering rendering: ExpectedWorkflowType.Rendering,
 		producingOutput output: ExpectedWorkflowType.Output? = nil,
 		file: StaticString = #file, line: UInt = #line,
@@ -184,7 +184,7 @@ public struct RenderTester<WorkflowType: Workflow> {
 	///   - assertions: Additional assertions for the given workflow, if any. You may use this to assert the properties of the requested workflow are as expected.
 	public func expectWorkflowIgnoringOutput<ExpectedWorkflowType: Workflow>(
 		type: ExpectedWorkflowType.Type,
-		key: String = "0",
+		key: String = "",
 		producingRendering rendering: ExpectedWorkflowType.Rendering,
 		file: StaticString = #file,
 		line: UInt = #line,

@@ -19,12 +19,16 @@ let package = Package(
 			targets: ["WorkflowUI"]
 		),
 		.library(
+			name: "WorkflowTesting",
+			targets: ["WorkflowTesting"]
+		),
+		.library(
 			name: "WorkflowReactiveSwift",
 			targets: ["WorkflowReactiveSwift"]
 		),
 		.library(
-			name: "WorkflowTesting",
-			targets: ["WorkflowTesting"]
+			name: "WorkflowReactiveSwiftTesting",
+			targets: ["WorkflowReactiveSwift"]
 		),
 		.library(
 			name: "ViewEnvironment",
@@ -54,11 +58,6 @@ let package = Package(
 			path: "WorkflowUI/Tests"
 		),
 		.target(
-			name: "WorkflowReactiveSwift",
-			dependencies: ["ReactiveSwift", "Workflow"],
-			path: "WorkflowReactiveSwift/Sources"
-		),
-		.target(
 			name: "WorkflowTesting",
 			dependencies: ["Workflow"],
 			path: "WorkflowTesting/Sources"
@@ -67,6 +66,26 @@ let package = Package(
 			name: "WorkflowTestingTests",
 			dependencies: ["WorkflowTesting"],
 			path: "WorkflowTesting/Tests"
+		),
+		.target(
+			name: "WorkflowReactiveSwift",
+			dependencies: ["ReactiveSwift", "Workflow"],
+			path: "WorkflowReactiveSwift/Sources"
+		),
+		.testTarget(
+			name: "WorkflowReactiveSwiftTests",
+			dependencies: ["WorkflowReactiveSwiftTesting"],
+			path: "WorkflowReactiveSwift/Tests"
+		),
+		.target(
+			name: "WorkflowReactiveSwiftTesting",
+			dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
+			path: "WorkflowReactiveSwift/Testing"
+		),
+		.testTarget(
+			name: "WorkflowReactiveSwiftTestingTests",
+			dependencies: ["WorkflowReactiveSwiftTesting"],
+			path: "WorkflowReactiveSwift/TestingTests"
 		),
 		.target(
 			name: "ViewEnvironment",

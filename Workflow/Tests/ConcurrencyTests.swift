@@ -197,7 +197,7 @@ final class ConcurrencyTests: XCTestCase {
 			typealias Rendering = TestScreen
 			func render(state: State, context: RenderContext<OneShotWorkflow>) -> Rendering {
 				let update: () -> Void
-				if state.isEmpty {
+				if state.count == 0 {
 					let sink = context.makeSink(of: Action.self)
 					update = {
 						sink.send(.updated)

@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "00678190-A4EA-44E4-85FB-7B1C8B2FBC54",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "WorkflowTestingTests",
+        "name" : "WorkflowTestingTests"
+      }
+    }
+  ],
+  "version" : 1
+}

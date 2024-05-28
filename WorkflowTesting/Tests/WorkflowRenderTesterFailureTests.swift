@@ -350,7 +350,7 @@ private struct TestWorkflow: Workflow {
 
 	enum State: Equatable {
 		case idle
-		case workflow(param: String, key: String = "0")
+		case workflow(param: String, key: String = "")
 		case voidWorkflow
 		case sideEffect(key: String)
 	}

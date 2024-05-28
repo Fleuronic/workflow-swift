@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "7C9E8965-D3B6-4630-AB34-4F9D8C934A3F",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "WorkflowReactiveSwiftTestingTests",
+        "name" : "WorkflowReactiveSwiftTestingTests"
+      }
+    }
+  ],
+  "version" : 1
+}
