@@ -48,7 +48,7 @@ extension RenderTester {
 }
 
 extension RenderTester {
-    internal class ExpectedSideEffect<WorkflowType: Workflow> {
+    internal class ExpectedSideEffect<ExpectedWorkflowType: Workflow> {
         let key: AnyHashable
         let file: StaticString
         let line: UInt
@@ -59,10 +59,10 @@ extension RenderTester {
             self.line = line
         }
 
-        func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {}
+        func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {}
     }
 
-    internal final class ExpectedSideEffectWithAction<WorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<WorkflowType> where ActionType.WorkflowType == WorkflowType {
+    internal final class ExpectedSideEffectWithAction<ExpectedWorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<ExpectedWorkflowType> where ActionType.WorkflowType == ExpectedWorkflowType {
         let action: ActionType
 
         internal init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {
@@ -70,7 +70,7 @@ extension RenderTester {
             super.init(key: key, file: file, line: line)
         }
 
-        override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == WorkflowType {
+        override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {
             let sink = context.makeSink(of: ActionType.self)
             sink.send(action)
         }

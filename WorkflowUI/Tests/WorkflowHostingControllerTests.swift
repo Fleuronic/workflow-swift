@@ -187,7 +187,7 @@ fileprivate struct PassthroughWorkflow: Workflow {
 
     typealias Output = Never
 
-    func render(state: State, context: RenderContext<Self>) -> TestScreen {
+    func render(state : State, context: RenderContext<Self>) -> TestScreen {
         return TestScreen(string: value)
     }
 }
