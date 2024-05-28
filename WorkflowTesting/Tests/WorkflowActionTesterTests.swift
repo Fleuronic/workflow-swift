@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,113 +20,113 @@ import XCTest
 @testable import WorkflowTesting
 
 final class WorkflowActionTesterTests: XCTestCase {
-    func test_stateTransitions() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .toggleTapped)
-            .verifyState { XCTAssertTrue($0) }
-    }
+	func test_stateTransitions() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .toggleTapped)
+			.verifyState { XCTAssertTrue($0) }
+	}
 
-    func test_stateTransitions_throw() throws {
-        try TestAction
-            .tester(withState: false)
-            .send(action: .toggleTapped)
-            .verifyState {
-                try throwingNoop()
-                XCTAssertTrue($0)
-            }
-    }
+	func test_stateTransitions_throw() throws {
+		try TestAction
+			.tester(withState: false)
+			.send(action: .toggleTapped)
+			.verifyState {
+				try throwingNoop()
+				XCTAssertTrue($0)
+			}
+	}
 
-    func test_stateTransitions_equatable() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .toggleTapped)
-            .assert(state: true)
-    }
+	func test_stateTransitions_equatable() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .toggleTapped)
+			.assert(state: true)
+	}
 
-    func test_noOutputs() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .toggleTapped)
-            .assertNoOutput()
-    }
+	func test_noOutputs() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .toggleTapped)
+			.assertNoOutput()
+	}
 
-    func test_outputs() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .exitTapped)
-            .verifyOutput { output in
-                XCTAssertEqual(output, .finished)
-            }
-    }
+	func test_outputs() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .exitTapped)
+			.verifyOutput { output in
+				XCTAssertEqual(output, .finished)
+			}
+	}
 
-    func test_outputs_throw() throws {
-        try TestAction
-            .tester(withState: false)
-            .send(action: .exitTapped)
-            .verifyOutput { output in
-                try throwingNoop()
-                XCTAssertEqual(output, .finished)
-            }
-    }
+	func test_outputs_throw() throws {
+		try TestAction
+			.tester(withState: false)
+			.send(action: .exitTapped)
+			.verifyOutput { output in
+				try throwingNoop()
+				XCTAssertEqual(output, .finished)
+			}
+	}
 
-    func test_outputs_equatable() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .exitTapped)
-            .assert(output: .finished)
-    }
+	func test_outputs_equatable() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .exitTapped)
+			.assert(output: .finished)
+	}
 
-    func test_deprecated_methods() {
-        TestAction
-            .tester(withState: false)
-            .send(action: .exitTapped)
-            .assert(output: .finished)
-            .verifyState { state in
-                XCTAssertFalse(state)
-            }
-    }
+	func test_deprecated_methods() {
+		TestAction
+			.tester(withState: false)
+			.send(action: .exitTapped)
+			.assert(output: .finished)
+			.verifyState { state in
+				XCTAssertFalse(state)
+			}
+	}
 
-    func test_testerExtension() {
-        let state = true
-        let tester = TestAction
-            .tester(withState: true)
-        XCTAssertEqual(state, tester.state)
-        XCTAssertNil(tester.output)
-    }
+	func test_testerExtension() {
+		let state = true
+		let tester = TestAction
+			.tester(withState: true)
+		XCTAssertEqual(state, tester.state)
+		XCTAssertNil(tester.output)
+	}
 }
 
 private enum TestAction: WorkflowAction {
-    case toggleTapped
-    case exitTapped
+	case toggleTapped
+	case exitTapped
 
-    typealias WorkflowType = TestWorkflow
+	typealias WorkflowType = TestWorkflow
 
-    func apply(toState state: inout Bool) -> TestWorkflow.Output? {
-        switch self {
-        case .toggleTapped:
-            state = !state
-            return nil
-        case .exitTapped:
-            return .finished
-        }
-    }
+	func apply(toState state: inout Bool) -> TestWorkflow.Output? {
+		switch self {
+		case .toggleTapped:
+			state = !state
+			return nil
+		case .exitTapped:
+			return .finished
+		}
+	}
 }
 
 private struct TestWorkflow: Workflow {
-    typealias State = Bool
+	typealias State = Bool
 
-    enum Output {
-        case finished
-    }
+	enum Output {
+		case finished
+	}
 
-    func makeInitialState() -> Bool {
-        true
-    }
+	func makeInitialState() -> Bool {
+		true
+	}
 
-    func render(state: Bool, context: RenderContext<TestWorkflow>) {
-        ()
-    }
+	func render(state: Bool, context: RenderContext<TestWorkflow>) {
+		()
+	}
 }
 
 private func throwingNoop() throws {}

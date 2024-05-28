@@ -19,74 +19,74 @@ import Workflow
 import XCTest
 
 final class StateMutationSinkTests: XCTestCase {
-    var output: Signal<Int, Never>!
-    var input: Signal<Int, Never>.Observer!
+	var output: Signal<Int, Never>!
+	var input: Signal<Int, Never>.Observer!
 
-    override func setUp() {
-        (output, input) = Signal<Int, Never>.pipe()
-    }
+	override func setUp() {
+		(output, input) = Signal<Int, Never>.pipe()
+	}
 
-    func test_initialValue() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
-        XCTAssertEqual(0, host.rendering.value)
-    }
+	func test_initialValue() {
+		let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
+		XCTAssertEqual(0, host.rendering.value)
+	}
 
-    func test_singleUpdate() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
+	func test_singleUpdate() {
+		let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
 
-        let gotValueExpectation = expectation(description: "Got expected value")
-        host.rendering.producer.startWithValues { val in
-            if val == 100 {
-                gotValueExpectation.fulfill()
-            }
-        }
+		let gotValueExpectation = expectation(description: "Got expected value")
+		host.rendering.producer.startWithValues { val in
+			if val == 100 {
+				gotValueExpectation.fulfill()
+			}
+		}
 
-        input.send(value: 100)
-        waitForExpectations(timeout: 1, handler: nil)
-    }
+		input.send(value: 100)
+		waitForExpectations(timeout: 1, handler: nil)
+	}
 
-    func test_multipleUpdates() {
-        let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
+	func test_multipleUpdates() {
+		let host = WorkflowHost(workflow: TestWorkflow(value: 100, signal: output))
 
-        let gotValueExpectation = expectation(description: "Got expected value")
+		let gotValueExpectation = expectation(description: "Got expected value")
 
-        var values: [Int] = []
-        host.rendering.producer.startWithValues { val in
-            values.append(val)
-            if val == 300 {
-                gotValueExpectation.fulfill()
-            }
-        }
+		var values: [Int] = []
+		host.rendering.producer.startWithValues { val in
+			values.append(val)
+			if val == 300 {
+				gotValueExpectation.fulfill()
+			}
+		}
 
-        input.send(value: 100)
-        input.send(value: 200)
-        input.send(value: 300)
-        XCTAssertEqual(values, [0, 100, 200, 300])
-        waitForExpectations(timeout: 1, handler: nil)
-    }
+		input.send(value: 100)
+		input.send(value: 200)
+		input.send(value: 300)
+		XCTAssertEqual(values, [0, 100, 200, 300])
+		waitForExpectations(timeout: 1, handler: nil)
+	}
 
-    fileprivate struct TestWorkflow: Workflow {
-        typealias State = Int
-        typealias Rendering = Int
+	fileprivate struct TestWorkflow: Workflow {
+		typealias State = Int
+		typealias Rendering = Int
 
-        let value: Int
-        let signal: Signal<Int, Never>
+		let value: Int
+		let signal: Signal<Int, Never>
 
-        func makeInitialState() -> Int {
-            0
-        }
+		func makeInitialState() -> Int {
+			0
+		}
 
-        func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
-            let stateMutationSink = context.makeStateMutationSink()
-            context.runSideEffect(key: "") { lifetime in
-                let disposable = signal.observeValues { val in
-                    stateMutationSink.send(\State.self, value: val)
-                }
-                lifetime.onEnded {
-                    disposable?.dispose()
-                }
-            }
-            return state
-        }
-    }
+		func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
+			let stateMutationSink = context.makeStateMutationSink()
+			context.runSideEffect(key: "") { lifetime in
+				let disposable = signal.observeValues { val in
+					stateMutationSink.send(\State.self, value: val)
+				}
+				lifetime.onEnded {
+					disposable?.dispose()
+				}
+			}
+			return state
+		}
+	}
 }

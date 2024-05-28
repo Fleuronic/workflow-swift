@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +20,27 @@
 import UIKit
 
 public struct AnyScreen: Screen {
-    /// The original screen, retained for debugging
-    public let wrappedScreen: Screen
+	/// The original screen, retained for debugging
+	public let wrappedScreen: Screen
 
-    public init<T: Screen>(_ screen: T) {
-        if let anyScreen = screen as? AnyScreen {
-            self = anyScreen
-            return
-        }
-        self.wrappedScreen = screen
-    }
+	public init<T: Screen>(_ screen: T) {
+		if let anyScreen = screen as? AnyScreen {
+			self = anyScreen
+			return
+		}
+		self.wrappedScreen = screen
+	}
 
-    public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-        return wrappedScreen.viewControllerDescription(environment: environment)
-    }
+	public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+		return wrappedScreen.viewControllerDescription(environment: environment)
+	}
 }
 
 extension Screen {
-    /// Wraps the screen in an AnyScreen
-    public func asAnyScreen() -> AnyScreen {
-        AnyScreen(self)
-    }
+	/// Wraps the screen in an AnyScreen
+	public func asAnyScreen() -> AnyScreen {
+		AnyScreen(self)
+	}
 }
 
 #endif

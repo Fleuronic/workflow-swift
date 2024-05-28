@@ -17,50 +17,50 @@
 import Foundation
 
 extension RenderContext {
-    /// Creates `StateMutationSink`.
-    ///
-    /// To create a sink:
-    /// ```
-    /// let stateMutationSink = context.makeStateMutationSink()
-    /// ```
-    ///
-    /// To mutate `State` on an event:
-    /// ```
-    /// stateMutationSink.send(\State.value, value: 10)
-    /// ```
-    public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
-        let sink = makeSink(of: AnyWorkflowAction<WorkflowType>.self)
-        return StateMutationSink(sink)
-    }
+	/// Creates `StateMutationSink`.
+	///
+	/// To create a sink:
+	/// ```
+	/// let stateMutationSink = context.makeStateMutationSink()
+	/// ```
+	///
+	/// To mutate `State` on an event:
+	/// ```
+	/// stateMutationSink.send(\State.value, value: 10)
+	/// ```
+	public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
+		let sink = makeSink(of: AnyWorkflowAction<WorkflowType>.self)
+		return StateMutationSink(sink)
+	}
 }
 
 /// StateMutationSink provides a `Sink` that helps mutate `State` using it's `KeyPath`.
 public struct StateMutationSink<WorkflowType: Workflow> {
-    let sink: Sink<AnyWorkflowAction<WorkflowType>>
+	let sink: Sink<AnyWorkflowAction<WorkflowType>>
 
-    /// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
-    ///
-    /// - Parameters:
-    ///   - update: The `State`` mutation to perform.
-    public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
-        sink.send(
-            AnyWorkflowAction<WorkflowType> { state in
-                update(&state)
-                return nil
-            }
-        )
-    }
+	/// Sends message to `StateMutationSink` to update `State`'s value using the provided closure.
+	///
+	/// - Parameters:
+	///   - update: The `State`` mutation to perform.
+	public func send(_ update: @escaping (inout WorkflowType.State) -> Void) {
+		sink.send(
+			AnyWorkflowAction<WorkflowType> { state in
+				update(&state)
+				return nil
+			}
+		)
+	}
 
-    /// Sends message to `StateMutationSink` to update `State`'s value at `KeyPath` with `Value`.
-    ///
-    /// - Parameters:
-    ///   - keyPath: Key path of `State` whose value needs to be mutated.
-    ///   - value: Value to update `State` with.
-    public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
-        send { $0[keyPath: keyPath] = value }
-    }
+	/// Sends message to `StateMutationSink` to update `State`'s value at `KeyPath` with `Value`.
+	///
+	/// - Parameters:
+	///   - keyPath: Key path of `State` whose value needs to be mutated.
+	///   - value: Value to update `State` with.
+	public func send<Value>(_ keyPath: WritableKeyPath<WorkflowType.State, Value>, value: Value) {
+		send { $0[keyPath: keyPath] = value }
+	}
 
-    init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {
-        self.sink = sink
-    }
+	init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {
+		self.sink = sink
+	}
 }

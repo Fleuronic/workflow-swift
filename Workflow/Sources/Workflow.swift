@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,53 +51,53 @@
 /// ```
 ///
 public protocol Workflow<Rendering, Output>: AnyWorkflowConvertible {
-    /// Defines the state that is managed by this workflow.
-    associatedtype State
+	/// Defines the state that is managed by this workflow.
+	associatedtype State
 
-    /// `Output` defines the type that can be emitted as output events.
-    associatedtype Output = Never
+	/// `Output` defines the type that can be emitted as output events.
+	associatedtype Output = Never
 
-    /// `Rendering` is the type that is produced by the `render` method: it
-    /// is commonly a view / screen model.
-    associatedtype Rendering
+	/// `Rendering` is the type that is produced by the `render` method: it
+	/// is commonly a view / screen model.
+	associatedtype Rendering
 
-    /// This method is invoked once when a workflow node comes into existence.
-    ///
-    /// - Returns: The initial state for the workflow.
-    func makeInitialState() -> State
+	/// This method is invoked once when a workflow node comes into existence.
+	///
+	/// - Returns: The initial state for the workflow.
+	func makeInitialState() -> State
 
-    /// Called when a new workflow is passed down from the parent to an existing workflow node.
-    ///
-    /// - Parameter previousWorkflow: The workflow before the update.
-    /// - Parameter state: The current state.
-    func workflowDidChange(from previousWorkflow: Self, state: inout State)
+	/// Called when a new workflow is passed down from the parent to an existing workflow node.
+	///
+	/// - Parameter previousWorkflow: The workflow before the update.
+	/// - Parameter state: The current state.
+	func workflowDidChange(from previousWorkflow: Self, state: inout State)
 
-    /// Called by the internal Workflow infrastructure to "render" the current state into `Rendering`.
-    /// A workflow's `Rendering` type is commonly a view or screen model.
-    ///
-    /// - Parameter state: The current state.
-    /// - Parameter context: The workflow context is the composition point for the workflow tree. To use a nested
-    ///                      workflow, instantiate it based on the current state, then call `rendered(in:key:outputMap:)`.
-    ///                      This will return the child's `Rendering` type after creating or updating the nested workflow.
-    func render(state: State, context: RenderContext<Self>) -> Rendering
+	/// Called by the internal Workflow infrastructure to "render" the current state into `Rendering`.
+	/// A workflow's `Rendering` type is commonly a view or screen model.
+	///
+	/// - Parameter state: The current state.
+	/// - Parameter context: The workflow context is the composition point for the workflow tree. To use a nested
+	///                      workflow, instantiate it based on the current state, then call `rendered(in:key:outputMap:)`.
+	///                      This will return the child's `Rendering` type after creating or updating the nested workflow.
+	func render(state: State, context: RenderContext<Self>) -> Rendering
 }
 
 extension Workflow {
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+	public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 /// When State is Void, provide empty `makeInitialState` and `workflowDidChange`
 /// implementations, making a “stateless workflow”.
 extension Workflow where State == Void {
-    public func makeInitialState() -> State {
-        return ()
-    }
+	public func makeInitialState() -> State {
+		return ()
+	}
 
-    public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
+	public func workflowDidChange(from previousWorkflow: Self, state: inout State) {}
 }
 
 extension Workflow {
-    public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
-        return AnyWorkflow(self)
-    }
+	public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
+		return AnyWorkflow(self)
+	}
 }

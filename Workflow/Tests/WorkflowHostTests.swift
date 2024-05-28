@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +19,37 @@ import Workflow
 import XCTest
 
 final class WorkflowHostTests: XCTestCase {
-    func test_updatedInputCausesRenderPass() {
-        let host = WorkflowHost(workflow: TestWorkflow(step: .first))
+	func test_updatedInputCausesRenderPass() {
+		let host = WorkflowHost(workflow: TestWorkflow(step: .first))
 
-        XCTAssertEqual(1, host.rendering.value)
+		XCTAssertEqual(1, host.rendering.value)
 
-        host.update(workflow: TestWorkflow(step: .second))
+		host.update(workflow: TestWorkflow(step: .second))
 
-        XCTAssertEqual(2, host.rendering.value)
-    }
+		XCTAssertEqual(2, host.rendering.value)
+	}
 
-    fileprivate struct TestWorkflow: Workflow {
-        var step: Step
-        enum Step {
-            case first
-            case second
-        }
+	fileprivate struct TestWorkflow: Workflow {
+		var step: Step
+		enum Step {
+			case first
+			case second
+		}
 
-        struct State {}
-        func makeInitialState() -> State {
-            return State()
-        }
+		struct State {}
+		func makeInitialState() -> State {
+			return State()
+		}
 
-        typealias Rendering = Int
+		typealias Rendering = Int
 
-        func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
-            switch step {
-            case .first:
-                return 1
-            case .second:
-                return 2
-            }
-        }
-    }
+		func render(state: State, context: RenderContext<TestWorkflow>) -> Rendering {
+			switch step {
+			case .first:
+				return 1
+			case .second:
+				return 2
+			}
+		}
+	}
 }

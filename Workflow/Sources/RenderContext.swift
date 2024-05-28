@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,111 +48,111 @@ import Foundation
 /// The infrastructure then performs a render pass on the child to obtain its
 /// `Rendering` value, which is then returned to the caller.
 public class RenderContext<WorkflowType: Workflow>: RenderContextType {
-    private(set) var isValid = true
+	private(set) var isValid = true
 
-    // Ensure that this class can never be initialized externally
-    private init() {}
+	// Ensure that this class can never be initialized externally
+	private init() {}
 
-    /// Creates or updates a child workflow of the given type, performs a render
-    /// pass, and returns the result.
-    ///
-    /// Note that it is a programmer error to render two instances of a given workflow type with the same `key`
-    /// during the same render pass.
-    ///
-    /// - Parameter workflow: The child workflow to be rendered.
-    /// - Parameter outputMap: A closure that transforms the child's output type into `Action`.
-    /// - Parameter key: A string that uniquely identifies this child.
-    ///
-    /// - Returns: The `Rendering` result of the child's `render` method.
-    func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
-        fatalError()
-    }
+	/// Creates or updates a child workflow of the given type, performs a render
+	/// pass, and returns the result.
+	///
+	/// Note that it is a programmer error to render two instances of a given workflow type with the same `key`
+	/// during the same render pass.
+	///
+	/// - Parameter workflow: The child workflow to be rendered.
+	/// - Parameter outputMap: A closure that transforms the child's output type into `Action`.
+	/// - Parameter key: A string that uniquely identifies this child.
+	///
+	/// - Returns: The `Rendering` result of the child's `render` method.
+	func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, WorkflowType == Action.WorkflowType {
+		fatalError()
+	}
 
-    public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
-        fatalError()
-    }
+	public func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType {
+		fatalError()
+	}
 
-    /// Execute a side-effect action.
-    ///
-    /// Note that it is a programmer error to run two side-effects with the same `key`
-    /// during the same render pass.
-    ///
-    /// `action` will be executed the first time a side-effect is run with a given `key`.
-    /// `runSideEffect` calls with a given `key` on subsequent renders are ignored.
-    ///
-    /// If after a render pass, a side-effect with a `key` that was previously used is not used,
-    /// it's lifetime ends and the `Lifetime` object's `onEnded` closure will be called.
-    ///
-    /// - Parameters:
-    ///   - key: represents the block of work that needs to be executed.
-    ///   - action: a block of work that will be executed.
-    public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
-        fatalError()
-    }
+	/// Execute a side-effect action.
+	///
+	/// Note that it is a programmer error to run two side-effects with the same `key`
+	/// during the same render pass.
+	///
+	/// `action` will be executed the first time a side-effect is run with a given `key`.
+	/// `runSideEffect` calls with a given `key` on subsequent renders are ignored.
+	///
+	/// If after a render pass, a side-effect with a `key` that was previously used is not used,
+	/// it's lifetime ends and the `Lifetime` object's `onEnded` closure will be called.
+	///
+	/// - Parameters:
+	///   - key: represents the block of work that needs to be executed.
+	///   - action: a block of work that will be executed.
+	public func runSideEffect(key: AnyHashable, action: (Lifetime) -> Void) {
+		fatalError()
+	}
 
-    final func invalidate() {
-        isValid = false
-    }
+	final func invalidate() {
+		isValid = false
+	}
 
-    // API to allow custom context implementations to power a render context
-    static func make<T: RenderContextType>(implementation: T) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
-        return ConcreteRenderContext(implementation)
-    }
+	// API to allow custom context implementations to power a render context
+	static func make<T: RenderContextType>(implementation: T) -> RenderContext<WorkflowType> where T.WorkflowType == WorkflowType {
+		return ConcreteRenderContext(implementation)
+	}
 
-    // Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
-    // that is ever instantiated.
-    private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
-        let implementation: T
+	// Private subclass that forwards render calls to a wrapped implementation. This is the only `RenderContext` class
+	// that is ever instantiated.
+	private final class ConcreteRenderContext<T: RenderContextType>: RenderContext where WorkflowType == T.WorkflowType {
+		let implementation: T
 
-        init(_ implementation: T) {
-            self.implementation = implementation
-            super.init()
-        }
+		init(_ implementation: T) {
+			self.implementation = implementation
+			super.init()
+		}
 
-        override func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
-            assertStillValid()
-            return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
-        }
+		override func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where WorkflowType == Action.WorkflowType, Child: Workflow, Action: WorkflowAction {
+			assertStillValid()
+			return implementation.render(workflow: workflow, key: key, outputMap: outputMap)
+		}
 
-        override func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
-            return implementation.makeSink(of: actionType)
-        }
+		override func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where WorkflowType == Action.WorkflowType, Action: WorkflowAction {
+			return implementation.makeSink(of: actionType)
+		}
 
-        override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
-            assertStillValid()
-            implementation.runSideEffect(key: key, action: action)
-        }
+		override func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void) {
+			assertStillValid()
+			implementation.runSideEffect(key: key, action: action)
+		}
 
-        private func assertStillValid() {
-            assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
-        }
-    }
+		private func assertStillValid() {
+			assert(isValid, "A `RenderContext` instance was used outside of the workflow's `render` method. It is a programmer error to capture a context in a closure or otherwise cause it to be used outside of the `render` method.")
+		}
+	}
 }
 
 internal protocol RenderContextType: AnyObject {
-    associatedtype WorkflowType: Workflow
+	associatedtype WorkflowType: Workflow
 
-    func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
+	func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
+	func makeSink<Action>(of actionType: Action.Type) -> Sink<Action> where Action: WorkflowAction, Action.WorkflowType == WorkflowType
 
-    func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
+	func runSideEffect(key: AnyHashable, action: (_ lifetime: Lifetime) -> Void)
 }
 
 extension RenderContext {
-    public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
-        return makeSink(of: AnyWorkflowAction.self)
-            .contraMap { event in
-                AnyWorkflowAction<WorkflowType> { state in
-                    onEvent(event, &state)
-                }
-            }
-    }
+	public func makeSink<Event>(of eventType: Event.Type, onEvent: @escaping (Event, inout WorkflowType.State) -> WorkflowType.Output?) -> Sink<Event> {
+		return makeSink(of: AnyWorkflowAction.self)
+			.contraMap { event in
+				AnyWorkflowAction<WorkflowType> { state in
+					onEvent(event, &state)
+				}
+			}
+	}
 
-    /// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
-    /// intermediate action.
-    public func makeOutputSink() -> Sink<WorkflowType.Output> {
-        return makeSink(of: AnyWorkflowAction.self)
-            .contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
-    }
+	/// Generates a sink that allows sending the Workflow's output wrapped in an AnyWorkflowAction, allowing bypassing an
+	/// intermediate action.
+	public func makeOutputSink() -> Sink<WorkflowType.Output> {
+		return makeSink(of: AnyWorkflowAction.self)
+			.contraMap { AnyWorkflowAction<WorkflowType>(sendingOutput: $0) }
+	}
 }

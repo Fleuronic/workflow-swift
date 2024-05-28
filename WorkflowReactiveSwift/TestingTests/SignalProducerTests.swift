@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,47 +22,47 @@ import WorkflowReactiveSwiftTesting
 import XCTest
 
 class SignalProducerTests: XCTestCase {
-    func test_signalProducerWorkflow() {
-        TestWorkflow()
-            .renderTester()
-            .expectSignalProducer(producingOutput: 1, key: "123")
-            .render {}
-    }
+	func test_signalProducerWorkflow() {
+		TestWorkflow()
+			.renderTester()
+			.expectSignalProducer(producingOutput: 1, key: "123")
+			.render {}
+	}
 
-    func test_multipleChildSignalProducerWorkflows() {
-        TestWorkflow(childKeys: ["123", "456"])
-            .renderTester()
-            .expectSignalProducer(
-                // value is arbitrary, but needed to specify the output type
-                producingOutput: 42,
-                key: "123"
-            )
-            .expectSignalProducer(
-                producingOutput: nil as Int?,
-                key: "456"
-            )
-            .render {}
-    }
+	func test_multipleChildSignalProducerWorkflows() {
+		TestWorkflow(childKeys: ["123", "456"])
+			.renderTester()
+			.expectSignalProducer(
+				// value is arbitrary, but needed to specify the output type
+				producingOutput: 42,
+				key: "123"
+			)
+			.expectSignalProducer(
+				producingOutput: nil as Int?,
+				key: "456"
+			)
+			.render {}
+	}
 
-    func test_signalProducerWorkflow_noOutput() {
-        TestWorkflow()
-            .renderTester()
-            .expectSignalProducer(outputType: Int.self, key: "123")
-            .render {}
-    }
+	func test_signalProducerWorkflow_noOutput() {
+		TestWorkflow()
+			.renderTester()
+			.expectSignalProducer(outputType: Int.self, key: "123")
+			.render {}
+	}
 
-    private struct TestWorkflow: Workflow {
-        typealias State = Void
-        typealias Rendering = Void
+	private struct TestWorkflow: Workflow {
+		typealias State = Void
+		typealias Rendering = Void
 
-        var childKeys: [String] = ["123"]
+		var childKeys: [String] = ["123"]
 
-        func render(state: State, context: RenderContext<Self>) -> Rendering {
-            for key in childKeys {
-                SignalProducer(value: 1)
-                    .mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
-                    .running(in: context, key: key)
-            }
-        }
-    }
+		func render(state: State, context: RenderContext<Self>) -> Rendering {
+			for key in childKeys {
+				SignalProducer(value: 1)
+					.mapOutput { _ in AnyWorkflowAction<TestWorkflow>.noAction }
+					.running(in: context, key: key)
+			}
+		}
+	}
 }

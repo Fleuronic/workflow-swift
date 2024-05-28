@@ -19,132 +19,132 @@ import XCTest
 @testable import Workflow
 
 class PerformanceTests: XCTestCase {
-    var noOpObserver: WorkflowObserver {
-        struct NoOpObserverImpl: WorkflowObserver {}
-        return NoOpObserverImpl()
-    }
+	var noOpObserver: WorkflowObserver {
+		struct NoOpObserverImpl: WorkflowObserver {}
+		return NoOpObserverImpl()
+	}
 
-    override func setUp() {
-        super.setUp()
-        WorkflowLogging.enabled = false
-    }
+	override func setUp() {
+		super.setUp()
+		WorkflowLogging.enabled = false
+	}
 
-    override func tearDown() {
-        super.tearDown()
-        WorkflowLogging.enabled = false
-    }
+	override func tearDown() {
+		super.tearDown()
+		WorkflowLogging.enabled = false
+	}
 
-    func test_render_wideShallowTree() throws {
-        measure {
-            let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
-        }
-    }
+	func test_render_wideShallowTree() throws {
+		measure {
+			let node = WorkflowNode(workflow: WideShallowParentWorkflow())
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_render_wideShallowTree_withNoOpObserver() throws {
-        measure { [noOpObserver] in
-            let node = WorkflowNode(
-                workflow: WideShallowParentWorkflow(),
-                observer: noOpObserver
-            )
-            _ = node.render(isRootNode: true)
-        }
-    }
+	func test_render_wideShallowTree_withNoOpObserver() throws {
+		measure { [noOpObserver] in
+			let node = WorkflowNode(
+				workflow: WideShallowParentWorkflow(),
+				observer: noOpObserver
+			)
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_render_narrowDeepTree() throws {
-        measure {
-            let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
-            _ = node.render(isRootNode: true)
-        }
-    }
+	func test_render_narrowDeepTree() throws {
+		measure {
+			let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_render_narrowDeepTree_withNoOpObserver() throws {
-        measure { [noOpObserver] in
-            let node = WorkflowNode(
-                workflow: NarrowDeepParentWorkflow(),
-                observer: noOpObserver
-            )
-            _ = node.render(isRootNode: true)
-        }
-    }
+	func test_render_narrowDeepTree_withNoOpObserver() throws {
+		measure { [noOpObserver] in
+			let node = WorkflowNode(
+				workflow: NarrowDeepParentWorkflow(),
+				observer: noOpObserver
+			)
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_debugLogging_render_wideShallowTree() throws {
-        WorkflowLogging.enabled = true
-        WorkflowLogging.config = .debug
+	func test_debugLogging_render_wideShallowTree() throws {
+		WorkflowLogging.enabled = true
+		WorkflowLogging.config = .debug
 
-        measure {
-            let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
-        }
-    }
+		measure {
+			let node = WorkflowNode(workflow: WideShallowParentWorkflow())
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_rootNodeLogging_render_wideShallowTree() throws {
-        WorkflowLogging.enabled = true
-        WorkflowLogging.config = .rootRendersAndActions
+	func test_rootNodeLogging_render_wideShallowTree() throws {
+		WorkflowLogging.enabled = true
+		WorkflowLogging.config = .rootRendersAndActions
 
-        measure {
-            let node = WorkflowNode(workflow: WideShallowParentWorkflow())
-            _ = node.render(isRootNode: true)
-        }
-    }
+		measure {
+			let node = WorkflowNode(workflow: WideShallowParentWorkflow())
+			_ = node.render(isRootNode: true)
+		}
+	}
 
-    func test_rootNodeLogging_render_narrowDeepTree() throws {
-        WorkflowLogging.enabled = true
-        WorkflowLogging.config = .rootRendersAndActions
+	func test_rootNodeLogging_render_narrowDeepTree() throws {
+		WorkflowLogging.enabled = true
+		WorkflowLogging.config = .rootRendersAndActions
 
-        measure {
-            let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
-            _ = node.render(isRootNode: true)
-        }
-    }
+		measure {
+			let node = WorkflowNode(workflow: NarrowDeepParentWorkflow())
+			_ = node.render(isRootNode: true)
+		}
+	}
 }
 
 private extension PerformanceTests {
-    struct WideShallowParentWorkflow: Workflow {
-        typealias State = Void
-        typealias Rendering = Int
+	struct WideShallowParentWorkflow: Workflow {
+		typealias State = Void
+		typealias Rendering = Int
 
-        func render(state: Void, context: RenderContext<WideShallowParentWorkflow>) -> Int {
-            var sum = 0
-            for i in 1 ... 1000 {
-                sum += ChildWorkflow()
-                    .rendered(in: context, key: "child-\(i)")
-            }
+		func render(state: Void, context: RenderContext<WideShallowParentWorkflow>) -> Int {
+			var sum = 0
+			for i in 1 ... 1000 {
+				sum += ChildWorkflow()
+					.rendered(in: context, key: "child-\(i)")
+			}
 
-            return sum
-        }
-    }
+			return sum
+		}
+	}
 
-    struct NarrowDeepParentWorkflow: Workflow {
-        typealias State = Void
-        typealias Rendering = Int
+	struct NarrowDeepParentWorkflow: Workflow {
+		typealias State = Void
+		typealias Rendering = Int
 
-        func render(state: Void, context: RenderContext<NarrowDeepParentWorkflow>) -> Int {
-            var sum = 0
-            sum += ChildWorkflow(remainingChildren: 999)
-                .rendered(in: context)
+		func render(state: Void, context: RenderContext<NarrowDeepParentWorkflow>) -> Int {
+			var sum = 0
+			sum += ChildWorkflow(remainingChildren: 999)
+				.rendered(in: context)
 
-            return sum
-        }
-    }
+			return sum
+		}
+	}
 
-    struct ChildWorkflow: Workflow {
-        typealias State = Void
-        typealias Rendering = Int
+	struct ChildWorkflow: Workflow {
+		typealias State = Void
+		typealias Rendering = Int
 
-        var remainingChildren: UInt = 0
+		var remainingChildren: UInt = 0
 
-        func render(state: Void, context: RenderContext<ChildWorkflow>) -> Int {
-            let rendering: Int
+		func render(state: Void, context: RenderContext<ChildWorkflow>) -> Int {
+			let rendering: Int
 
-            if remainingChildren > 0 {
-                rendering = ChildWorkflow(remainingChildren: remainingChildren - 1)
-                    .rendered(in: context)
-            } else {
-                rendering = 42
-            }
+			if remainingChildren > 0 {
+				rendering = ChildWorkflow(remainingChildren: remainingChildren - 1)
+					.rendered(in: context)
+			} else {
+				rendering = 42
+			}
 
-            return rendering
-        }
-    }
+			return rendering
+		}
+	}
 }

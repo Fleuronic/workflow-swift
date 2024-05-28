@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +37,7 @@ import Workflow
 /// }
 /// ```
 extension Signal: AnyWorkflowConvertible where Error == Never {
-    public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-        return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
-    }
+	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
+		return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
+	}
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,68 +22,68 @@ import XCTest
 @testable import WorkflowReactiveSwift
 
 class SignalProducerTests: XCTestCase {
-    func test_signalProducerWorkflow_usesSideEffectWithKey() {
-        let signalProducer = SignalProducer(value: 1)
-        SignalProducerWorkflow(signalProducer: signalProducer)
-            .renderTester()
-            .expectSideEffect(key: "")
-            .render { _ in }
-    }
+	func test_signalProducerWorkflow_usesSideEffectWithKey() {
+		let signalProducer = SignalProducer(value: 1)
+		SignalProducerWorkflow(signalProducer: signalProducer)
+			.renderTester()
+			.expectSideEffect(key: "")
+			.render { _ in }
+	}
 
-    func test_output() {
-        let signalProducer = SignalProducer(value: 1)
+	func test_output() {
+		let signalProducer = SignalProducer(value: 1)
 
-        let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
-        )
+		let host = WorkflowHost(
+			workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+		)
 
-        let expectation = XCTestExpectation()
-        var outputValue: Int?
-        let disposable = host.output.signal.observeValues { output in
-            outputValue = output
-            expectation.fulfill()
-        }
+		let expectation = XCTestExpectation()
+		var outputValue: Int?
+		let disposable = host.output.signal.observeValues { output in
+			outputValue = output
+			expectation.fulfill()
+		}
 
-        wait(for: [expectation], timeout: 1)
-        XCTAssertEqual(1, outputValue)
+		wait(for: [expectation], timeout: 1)
+		XCTAssertEqual(1, outputValue)
 
-        disposable?.dispose()
-    }
+		disposable?.dispose()
+	}
 
-    func test_multipleOutputs() {
-        let signalProducer = SignalProducer(values: 1, 2, 3)
+	func test_multipleOutputs() {
+		let signalProducer = SignalProducer(values: 1, 2, 3)
 
-        let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
-        )
+		let host = WorkflowHost(
+			workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+		)
 
-        let expectation = XCTestExpectation()
-        var outputValues = [Int]()
-        let disposable = host.output.signal.observeValues { output in
-            outputValues.append(output)
-            expectation.fulfill()
-        }
+		let expectation = XCTestExpectation()
+		var outputValues = [Int]()
+		let disposable = host.output.signal.observeValues { output in
+			outputValues.append(output)
+			expectation.fulfill()
+		}
 
-        wait(for: [expectation], timeout: 1)
-        XCTAssertEqual([1, 2, 3], outputValues)
+		wait(for: [expectation], timeout: 1)
+		XCTAssertEqual([1, 2, 3], outputValues)
 
-        disposable?.dispose()
-    }
+		disposable?.dispose()
+	}
 
-    func test_signalProducer_isDisposedIfNotUsedInWorkflow() {
-        let expectation = XCTestExpectation(description: "SignalProducer should be disposed if no longer used.")
-        let signalProducer = SignalProducer(values: 1, 2, 3)
-            .on(disposed: {
-                expectation.fulfill()
-        })
+	func test_signalProducer_isDisposedIfNotUsedInWorkflow() {
+		let expectation = XCTestExpectation(description: "SignalProducer should be disposed if no longer used.")
+		let signalProducer = SignalProducer(values: 1, 2, 3)
+			.on(disposed: {
+				expectation.fulfill()
+			})
 
-        let host = WorkflowHost(
-            workflow: SignalProducerWorkflow(signalProducer: signalProducer)
-        )
+		let host = WorkflowHost(
+			workflow: SignalProducerWorkflow(signalProducer: signalProducer)
+		)
 
-        let signalProducerTwo = SignalProducer(values: 1, 2, 3)
-        host.update(workflow: SignalProducerWorkflow(signalProducer: signalProducerTwo))
+		let signalProducerTwo = SignalProducer(values: 1, 2, 3)
+		host.update(workflow: SignalProducerWorkflow(signalProducer: signalProducerTwo))
 
-        wait(for: [expectation], timeout: 1)
-    }
+		wait(for: [expectation], timeout: 1)
+	}
 }

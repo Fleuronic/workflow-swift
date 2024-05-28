@@ -20,9 +20,9 @@ import ReactiveSwift
 @_spi(WorkflowInternals) import Workflow
 
 extension QueueScheduler {
-    static let workflowExecution: QueueScheduler = QueueScheduler(
-        qos: .userInteractive,
-        name: "com.squareup.workflow",
-        targeting: DispatchQueue.workflowExecution
-    )
+	static let workflowExecution: QueueScheduler = QueueScheduler(
+		qos: .userInteractive,
+		name: "com.squareup.workflow",
+		targeting: DispatchQueue.workflowExecution
+	)
 }

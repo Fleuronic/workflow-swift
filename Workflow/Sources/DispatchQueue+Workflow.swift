@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,6 @@
 import Foundation
 
 extension DispatchQueue {
-    @_spi(WorkflowInternals)
-    public static let workflowExecution: DispatchQueue = .main
+	@_spi(WorkflowInternals)
+	public static let workflowExecution: DispatchQueue = .main
 }

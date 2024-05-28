@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,34 +22,34 @@ import XCTest
 @testable import WorkflowReactiveSwift
 
 extension RenderTester {
-    /// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
-    ///
-    /// - Parameters:
-    ///   - worker: The worker to be expected
-    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
-    ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expect<ExpectedWorkerType: Worker>(
-        worker: ExpectedWorkerType,
-        producingOutput output: ExpectedWorkerType.Output? = nil,
-        key: String = "0",
-        file: StaticString = #file, line: UInt = #line
-    ) -> RenderTester<WorkflowType> {
-        expectWorkflow(
-            type: WorkerWorkflow<ExpectedWorkerType>.self,
-            key: key,
-            producingRendering: (),
-            producingOutput: output,
-            assertions: { workflow in
-                guard !workflow.worker.isEquivalent(to: worker) else {
-                    return
-                }
-                XCTFail(
-                    "Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(worker). Got: \(workflow.worker)",
-                    file: file,
-                    line: line
-                )
-            }
-        )
-    }
+	/// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.
+	///
+	/// - Parameters:
+	///   - worker: The worker to be expected
+	///   - producingOutput: An output that should be returned when this worker is requested, if any.
+	///   - key: Key to expect this `Workflow` to be rendered with.
+	public func expect<ExpectedWorkerType: Worker>(
+		worker: ExpectedWorkerType,
+		producingOutput output: ExpectedWorkerType.Output? = nil,
+		key: String = "0",
+		file: StaticString = #file, line: UInt = #line
+	) -> RenderTester<WorkflowType> {
+		expectWorkflow(
+			type: WorkerWorkflow<ExpectedWorkerType>.self,
+			key: key,
+			producingRendering: (),
+			producingOutput: output,
+			assertions: { workflow in
+				guard !workflow.worker.isEquivalent(to: worker) else {
+					return
+				}
+				XCTFail(
+					"Workers of type \(ExpectedWorkerType.self) not equivalent. Expected: \(worker). Got: \(workflow.worker)",
+					file: file,
+					line: line
+				)
+			}
+		)
+	}
 }
 #endif

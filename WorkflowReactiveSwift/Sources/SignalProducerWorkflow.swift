@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,49 +38,49 @@ import class Workflow.Lifetime
 /// }
 /// ```
 extension SignalProducer: AnyWorkflowConvertible where Error == Never {
-    public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-        return SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
-    }
+	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
+		return SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
+	}
 }
 
 struct SignalProducerWorkflow<Value>: Workflow {
-    public typealias Output = Value
-    public typealias State = Void
-    public typealias Rendering = Void
+	public typealias Output = Value
+	public typealias State = Void
+	public typealias Rendering = Void
 
-    struct SignalProducerWorkflowAction: WorkflowAction {
-        typealias WorkflowType = SignalProducerWorkflow
-        let output: Value
+	struct SignalProducerWorkflowAction: WorkflowAction {
+		typealias WorkflowType = SignalProducerWorkflow
+		let output: Value
 
-        func apply(toState state: inout Void) -> Value? {
-            output
-        }
-    }
+		func apply(toState state: inout Void) -> Value? {
+			output
+		}
+	}
 
-    var signalProducer: SignalProducer<Value, Never>
+	var signalProducer: SignalProducer<Value, Never>
 
-    public init(signalProducer: SignalProducer<Value, Never>) {
-        self.signalProducer = signalProducer
-    }
+	public init(signalProducer: SignalProducer<Value, Never>) {
+		self.signalProducer = signalProducer
+	}
 
-    public func render(state: State, context: RenderContext<SignalProducerWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: SignalProducerWorkflowAction.self)
-        context.runSideEffect(key: "") { [signalProducer] lifetime in
-            signalProducer
-                .take(during: lifetime.reactiveLifetime)
-                .map { SignalProducerWorkflowAction(output: $0) }
-                .observe(on: QueueScheduler.main)
-                .startWithValues(sink.send)
-        }
-    }
+	public func render(state: State, context: RenderContext<SignalProducerWorkflow>) -> Rendering {
+		let sink = context.makeSink(of: SignalProducerWorkflowAction.self)
+		context.runSideEffect(key: "") { [signalProducer] lifetime in
+			signalProducer
+				.take(during: lifetime.reactiveLifetime)
+				.map { SignalProducerWorkflowAction(output: $0) }
+				.observe(on: QueueScheduler.main)
+				.startWithValues(sink.send)
+		}
+	}
 }
 
 private extension Lifetime {
-    var reactiveLifetime: ReactiveSwift.Lifetime {
-        let (lifetime, token) = ReactiveSwift.Lifetime.make()
-        onEnded {
-            token.dispose()
-        }
-        return lifetime
-    }
+	var reactiveLifetime: ReactiveSwift.Lifetime {
+		let (lifetime, token) = ReactiveSwift.Lifetime.make()
+		onEnded {
+			token.dispose()
+		}
+		return lifetime
+	}
 }

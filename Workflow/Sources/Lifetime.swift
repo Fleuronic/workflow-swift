@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +21,24 @@ import Foundation
 ///
 /// Once ended, the `onEnded` closure is called.
 public final class Lifetime {
-    /// Hook to clean-up after end of `lifetime`.
-    public func onEnded(_ action: @escaping () -> Void) {
-        assert(!hasEnded, "Lifetime used after being ended.")
-        onEndedActions.append(action)
-    }
+	/// Hook to clean-up after end of `lifetime`.
+	public func onEnded(_ action: @escaping () -> Void) {
+		assert(!hasEnded, "Lifetime used after being ended.")
+		onEndedActions.append(action)
+	}
 
-    public private(set) var hasEnded: Bool = false
-    private var onEndedActions: [() -> Void] = []
+	public private(set) var hasEnded: Bool = false
+	private var onEndedActions: [() -> Void] = []
 
-    deinit {
-        end()
-    }
+	deinit {
+		end()
+	}
 
-    func end() {
-        guard !hasEnded else {
-            return
-        }
-        hasEnded = true
-        onEndedActions.forEach { $0() }
-    }
+	func end() {
+		guard !hasEnded else {
+			return
+		}
+		hasEnded = true
+		onEndedActions.forEach { $0() }
+	}
 }

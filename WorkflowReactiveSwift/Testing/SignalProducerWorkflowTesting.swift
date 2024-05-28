@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,45 +22,45 @@ import XCTest
 @testable import WorkflowReactiveSwift
 
 extension RenderTester {
-    /// Expect a `SignalProducer`.
-    ///
-    /// `SignalProducerWorkflow` is used to subscribe to `SignalProducer`s and `Signal`s.
-    ///
-    ///  ⚠️ N.B. If you are testing a case in which multiple `SignalProducerWorkflow`s are expected, **only one of them** may have a non-nil `producingOutput` parameter.
-    ///
-    /// - Parameters:
-    ///   - producingOutput: An output that should be returned when this worker is requested, if any.
-    ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expectSignalProducer<OutputType>(
-        producingOutput output: OutputType? = nil,
-        key: String = "0",
-        file: StaticString = #file, line: UInt = #line
-    ) -> RenderTester<WorkflowType> {
-        expectWorkflow(
-            type: SignalProducerWorkflow<OutputType>.self,
-            key: key,
-            producingRendering: (),
-            producingOutput: output,
-            assertions: { _ in }
-        )
-    }
+	/// Expect a `SignalProducer`.
+	///
+	/// `SignalProducerWorkflow` is used to subscribe to `SignalProducer`s and `Signal`s.
+	///
+	///  ⚠️ N.B. If you are testing a case in which multiple `SignalProducerWorkflow`s are expected, **only one of them** may have a non-nil `producingOutput` parameter.
+	///
+	/// - Parameters:
+	///   - producingOutput: An output that should be returned when this worker is requested, if any.
+	///   - key: Key to expect this `Workflow` to be rendered with.
+	public func expectSignalProducer<OutputType>(
+		producingOutput output: OutputType? = nil,
+		key: String = "0",
+		file: StaticString = #file, line: UInt = #line
+	) -> RenderTester<WorkflowType> {
+		expectWorkflow(
+			type: SignalProducerWorkflow<OutputType>.self,
+			key: key,
+			producingRendering: (),
+			producingOutput: output,
+			assertions: { _ in }
+		)
+	}
 
-    /// Expect a `SignalProducer` with the specified `outputType` that produces no `Output`.
-    ///
-    /// - Parameters:
-    ///   - outputType: The `OutputType` of the expected `SignalProducerWorkflow`.
-    ///   - key: Key to expect this `Workflow` to be rendered with.
-    public func expectSignalProducer<OutputType>(
-        outputType: OutputType.Type,
-        key: String = "0",
-        file: StaticString = #file, line: UInt = #line
-    ) -> RenderTester<WorkflowType> {
-        expectWorkflow(
-            type: SignalProducerWorkflow<OutputType>.self,
-            key: key,
-            producingRendering: (),
-            assertions: { _ in }
-        )
-    }
+	/// Expect a `SignalProducer` with the specified `outputType` that produces no `Output`.
+	///
+	/// - Parameters:
+	///   - outputType: The `OutputType` of the expected `SignalProducerWorkflow`.
+	///   - key: Key to expect this `Workflow` to be rendered with.
+	public func expectSignalProducer<OutputType>(
+		outputType: OutputType.Type,
+		key: String = "0",
+		file: StaticString = #file, line: UInt = #line
+	) -> RenderTester<WorkflowType> {
+		expectWorkflow(
+			type: SignalProducerWorkflow<OutputType>.self,
+			key: key,
+			producingRendering: (),
+			assertions: { _ in }
+		)
+	}
 }
 #endif

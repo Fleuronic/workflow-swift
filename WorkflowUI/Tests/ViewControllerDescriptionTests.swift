@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,146 +26,146 @@ import Workflow
 fileprivate class BlankViewController: UIViewController {}
 
 @objc fileprivate protocol MyProtocol {
-    func update()
+	func update()
 }
 
 class ViewControllerDescriptionTests: XCTestCase {
-    func test_build() {
-        let description = ViewControllerDescription(
-            build: { BlankViewController() },
-            update: { _ in }
-        )
+	func test_build() {
+		let description = ViewControllerDescription(
+			build: { BlankViewController() },
+			update: { _ in }
+		)
 
-        // Check built view controller
-        let viewController = description.buildViewController()
-        XCTAssertTrue(type(of: viewController) == BlankViewController.self)
+		// Check built view controller
+		let viewController = description.buildViewController()
+		XCTAssertTrue(type(of: viewController) == BlankViewController.self)
 
-        // Check another built view controller isn’t somehow the same instance
-        let viewControllerAgain = description.buildViewController()
-        XCTAssertFalse(viewController === viewControllerAgain)
-    }
+		// Check another built view controller isn’t somehow the same instance
+		let viewControllerAgain = description.buildViewController()
+		XCTAssertFalse(viewController === viewControllerAgain)
+	}
 
-    func test_canUpdate() {
-        let description = ViewControllerDescription(
-            build: { BlankViewController() },
-            update: { _ in }
-        )
+	func test_canUpdate() {
+		let description = ViewControllerDescription(
+			build: { BlankViewController() },
+			update: { _ in }
+		)
 
-        let viewController = description.buildViewController()
-        XCTAssertTrue(description.canUpdate(viewController: viewController))
+		let viewController = description.buildViewController()
+		XCTAssertTrue(description.canUpdate(viewController: viewController))
 
-        let otherViewController = UIViewController()
-        XCTAssertFalse(description.canUpdate(viewController: otherViewController))
+		let otherViewController = UIViewController()
+		XCTAssertFalse(description.canUpdate(viewController: otherViewController))
 
-        final class SubclassViewController: BlankViewController {}
+		final class SubclassViewController: BlankViewController {}
 
-        // We can update subclasses too, as long as they pass an "is/as?" check.
-        let subclassViewController = SubclassViewController()
-        XCTAssertTrue(description.canUpdate(viewController: subclassViewController))
-    }
+		// We can update subclasses too, as long as they pass an "is/as?" check.
+		let subclassViewController = SubclassViewController()
+		XCTAssertTrue(description.canUpdate(viewController: subclassViewController))
+	}
 
-    func test_canUpdate_abstractViewController() {
-        func makeAbstractViewController() -> UIViewController & MyProtocol {
-            class ConcreteViewController: UIViewController, MyProtocol {
-                func update() {}
-            }
-            return ConcreteViewController()
-        }
+	func test_canUpdate_abstractViewController() {
+		func makeAbstractViewController() -> UIViewController & MyProtocol {
+			class ConcreteViewController: UIViewController, MyProtocol {
+				func update() {}
+			}
+			return ConcreteViewController()
+		}
 
-        let viewController = makeAbstractViewController()
+		let viewController = makeAbstractViewController()
 
-        let description = ViewControllerDescription(
-            build: { viewController },
-            update: { $0.update() }
-        )
+		let description = ViewControllerDescription(
+			build: { viewController },
+			update: { $0.update() }
+		)
 
-        XCTAssertTrue(description.canUpdate(viewController: viewController))
-        XCTAssertFalse(description.canUpdate(viewController: UIViewController()))
-    }
+		XCTAssertTrue(description.canUpdate(viewController: viewController))
+		XCTAssertFalse(description.canUpdate(viewController: UIViewController()))
+	}
 
-    func test_performInitialUpdate() {
-        var updateCount = 0
-        let description = ViewControllerDescription(
-            performInitialUpdate: false,
-            build: { BlankViewController() },
-            update: { _ in updateCount += 1 }
-        )
+	func test_performInitialUpdate() {
+		var updateCount = 0
+		let description = ViewControllerDescription(
+			performInitialUpdate: false,
+			build: { BlankViewController() },
+			update: { _ in updateCount += 1 }
+		)
 
-        XCTAssertEqual(updateCount, 0)
+		XCTAssertEqual(updateCount, 0)
 
-        // Build should not cause an initial update when
-        let viewController = description.buildViewController()
-        XCTAssertEqual(updateCount, 0)
+		// Build should not cause an initial update when
+		let viewController = description.buildViewController()
+		XCTAssertEqual(updateCount, 0)
 
-        description.update(viewController: viewController)
-        XCTAssertEqual(updateCount, 1)
-    }
+		description.update(viewController: viewController)
+		XCTAssertEqual(updateCount, 1)
+	}
 
-    func test_update() {
-        var updateCount = 0
-        let description = ViewControllerDescription(
-            build: { BlankViewController() },
-            update: { viewController in
-                XCTAssertTrue(type(of: viewController) == BlankViewController.self)
-                updateCount += 1
-            }
-        )
+	func test_update() {
+		var updateCount = 0
+		let description = ViewControllerDescription(
+			build: { BlankViewController() },
+			update: { viewController in
+				XCTAssertTrue(type(of: viewController) == BlankViewController.self)
+				updateCount += 1
+			}
+		)
 
-        XCTAssertEqual(updateCount, 0)
+		XCTAssertEqual(updateCount, 0)
 
-        // Build causes an initial update
-        let viewController = description.buildViewController()
-        XCTAssertEqual(updateCount, 1)
+		// Build causes an initial update
+		let viewController = description.buildViewController()
+		XCTAssertEqual(updateCount, 1)
 
-        description.update(viewController: viewController)
-        XCTAssertEqual(updateCount, 2)
+		description.update(viewController: viewController)
+		XCTAssertEqual(updateCount, 2)
 
-        description.update(viewController: viewController)
-        XCTAssertEqual(updateCount, 3)
-    }
+		description.update(viewController: viewController)
+		XCTAssertEqual(updateCount, 3)
+	}
 
-    func test_screenViewController() {
-        // Make sure ScreenViewController<T>.description(for:) generates a correct view controller
-        // description
+	func test_screenViewController() {
+		// Make sure ScreenViewController<T>.description(for:) generates a correct view controller
+		// description
 
-        struct MyScreen: Screen {
-            func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-                return MyScreenViewController.description(for: self, environment: environment)
-            }
-        }
+		struct MyScreen: Screen {
+			func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+				return MyScreenViewController.description(for: self, environment: environment)
+			}
+		}
 
-        final class MyScreenViewController: ScreenViewController<MyScreen> {}
+		final class MyScreenViewController: ScreenViewController<MyScreen> {}
 
-        let screen = MyScreen()
-        let description = screen.viewControllerDescription(environment: .empty)
+		let screen = MyScreen()
+		let description = screen.viewControllerDescription(environment: .empty)
 
-        let viewController = description.buildViewController()
-        XCTAssertTrue(type(of: viewController) == MyScreenViewController.self)
+		let viewController = description.buildViewController()
+		XCTAssertTrue(type(of: viewController) == MyScreenViewController.self)
 
-        XCTAssertTrue(description.canUpdate(viewController: viewController))
+		XCTAssertTrue(description.canUpdate(viewController: viewController))
 
-        let viewControllerAgain = description.buildViewController()
-        XCTAssertFalse(viewController === viewControllerAgain)
-    }
+		let viewControllerAgain = description.buildViewController()
+		XCTAssertFalse(viewController === viewControllerAgain)
+	}
 }
 
 class ViewControllerDescription_KindIdentifierTests: XCTestCase {
-    private final class VC1: UIViewController {}
-    private final class VC2: UIViewController {}
+	private final class VC1: UIViewController {}
+	private final class VC2: UIViewController {}
 
-    func test_kind() {
-        let kind1 = ViewControllerDescription.KindIdentifier(VC1.self)
-        let kind2 = ViewControllerDescription.KindIdentifier(VC2.self)
+	func test_kind() {
+		let kind1 = ViewControllerDescription.KindIdentifier(VC1.self)
+		let kind2 = ViewControllerDescription.KindIdentifier(VC2.self)
 
-        XCTAssertEqual(kind1, kind1)
-        XCTAssertNotEqual(kind1, kind2)
+		XCTAssertEqual(kind1, kind1)
+		XCTAssertNotEqual(kind1, kind2)
 
-        let vc1 = VC1()
-        let vc2 = VC2()
+		let vc1 = VC1()
+		let vc2 = VC2()
 
-        XCTAssertTrue(kind1.canUpdate(viewController: vc1))
-        XCTAssertFalse(kind1.canUpdate(viewController: vc2))
-    }
+		XCTAssertTrue(kind1.canUpdate(viewController: vc1))
+		XCTAssertFalse(kind1.canUpdate(viewController: vc2))
+	}
 }
 
 #endif

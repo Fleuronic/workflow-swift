@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +19,17 @@ import Workflow
 import XCTest
 
 struct AppliedAction<WorkflowType: Workflow> {
-    let erasedAction: Any
+	let erasedAction: Any
 
-    init<ActionType: WorkflowAction>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
-        self.erasedAction = action
-    }
+	init<ActionType: WorkflowAction>(_ action: ActionType) where ActionType.WorkflowType == WorkflowType {
+		self.erasedAction = action
+	}
 
-    func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
-        guard let action = erasedAction as? ActionType else {
-            XCTFail("Expected action of type \(ActionType.self), got \(erasedAction)", file: file, line: line)
-            return
-        }
-        try assertions(action)
-    }
+	func assert<ActionType: WorkflowAction>(type: ActionType.Type = ActionType.self, file: StaticString, line: UInt, assertions: (ActionType) throws -> Void) rethrows where ActionType.WorkflowType == WorkflowType {
+		guard let action = erasedAction as? ActionType else {
+			XCTFail("Expected action of type \(ActionType.self), got \(erasedAction)", file: file, line: line)
+			return
+		}
+		try assertions(action)
+	}
 }

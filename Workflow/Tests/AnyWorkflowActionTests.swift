@@ -18,108 +18,108 @@ import XCTest
 @testable import Workflow
 
 final class AnyWorkflowActionTests: XCTestCase {
-    func testRetainsBaseActionTypeInfo() {
-        let action = ExampleAction()
-        let erased = AnyWorkflowAction(action)
+	func testRetainsBaseActionTypeInfo() {
+		let action = ExampleAction()
+		let erased = AnyWorkflowAction(action)
 
-        XCTAssertEqual(action, erased.base as? ExampleAction)
-    }
+		XCTAssertEqual(action, erased.base as? ExampleAction)
+	}
 
-    func testRetainsClosureActionTypeInfo() throws {
-        do {
-            let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
-                nil
-            }
+	func testRetainsClosureActionTypeInfo() throws {
+		do {
+			let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+				nil
+			}
 
-            XCTAssertNotNil(erased.base as? ClosureAction<ExampleWorkflow>)
-        }
+			XCTAssertNotNil(erased.base as? ClosureAction<ExampleWorkflow>)
+		}
 
-        do {
-            let fileID: StaticString = #fileID
-            // must match line # the initializer is on
-            let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
-                nil
-            }
+		do {
+			let fileID: StaticString = #fileID
+			// must match line # the initializer is on
+			let line: UInt = #line; let erased = AnyWorkflowAction<ExampleWorkflow> { _ in
+				nil
+			}
 
-            let closureAction = try XCTUnwrap(erased.base as? ClosureAction<ExampleWorkflow>)
-            XCTAssertEqual("\(closureAction.fileID)", "\(fileID)")
-            XCTAssertEqual(closureAction.line, line)
-        }
-    }
+			let closureAction = try XCTUnwrap(erased.base as? ClosureAction<ExampleWorkflow>)
+			XCTAssertEqual("\(closureAction.fileID)", "\(fileID)")
+			XCTAssertEqual(closureAction.line, line)
+		}
+	}
 
-    func testMultipleErasure() {
-        // standard init
-        do {
-            let action = ExampleAction()
-            let erasedOnce = AnyWorkflowAction(action)
-            let erasedTwice = AnyWorkflowAction(erasedOnce)
+	func testMultipleErasure() {
+		// standard init
+		do {
+			let action = ExampleAction()
+			let erasedOnce = AnyWorkflowAction(action)
+			let erasedTwice = AnyWorkflowAction(erasedOnce)
 
-            XCTAssertEqual(
-                erasedOnce.base as? ExampleAction,
-                erasedTwice.base as? ExampleAction
-            )
-        }
+			XCTAssertEqual(
+				erasedOnce.base as? ExampleAction,
+				erasedTwice.base as? ExampleAction
+			)
+		}
 
-        // closure init
-        do {
-            let action = AnyWorkflowAction<ExampleWorkflow> { _ in nil }
-            let erasedAgain = AnyWorkflowAction(action)
+		// closure init
+		do {
+			let action = AnyWorkflowAction<ExampleWorkflow> { _ in nil }
+			let erasedAgain = AnyWorkflowAction(action)
 
-            XCTAssertEqual(
-                "\(action.base.self)",
-                "\(erasedAgain.base.self)"
-            )
-        }
-    }
+			XCTAssertEqual(
+				"\(action.base.self)",
+				"\(erasedAgain.base.self)"
+			)
+		}
+	}
 
-    func testApplyForwarding() {
-        var log: [String] = []
-        let action = ObservableExampleAction {
-            log.append("action invoked")
-        }
+	func testApplyForwarding() {
+		var log: [String] = []
+		let action = ObservableExampleAction {
+			log.append("action invoked")
+		}
 
-        let erased = AnyWorkflowAction(action)
+		let erased = AnyWorkflowAction(action)
 
-        XCTAssertEqual(log, [])
+		XCTAssertEqual(log, [])
 
-        var state: Void = ()
-        _ = erased.apply(toState: &state)
+		var state: Void = ()
+		_ = erased.apply(toState: &state)
 
-        XCTAssertEqual(log, ["action invoked"])
-    }
+		XCTAssertEqual(log, ["action invoked"])
+	}
 
-    func testIsClosureBased() {
-        let nonClosureBased = AnyWorkflowAction(ExampleAction())
-        XCTAssertFalse(nonClosureBased.isClosureBased)
+	func testIsClosureBased() {
+		let nonClosureBased = AnyWorkflowAction(ExampleAction())
+		XCTAssertFalse(nonClosureBased.isClosureBased)
 
-        let closureBased = AnyWorkflowAction<ExampleWorkflow> { _ in .none }
-        XCTAssertTrue(closureBased.isClosureBased)
-    }
+		let closureBased = AnyWorkflowAction<ExampleWorkflow> { _ in .none }
+		XCTAssertTrue(closureBased.isClosureBased)
+	}
 }
 
 private struct ExampleWorkflow: Workflow {
-    typealias State = Void
-    typealias Output = Never
-    typealias Rendering = Void
+	typealias State = Void
+	typealias Output = Never
+	typealias Rendering = Void
 
-    func render(state: Void, context: RenderContext<ExampleWorkflow>) {}
+	func render(state: Void, context: RenderContext<ExampleWorkflow>) {}
 }
 
 private struct ExampleAction: WorkflowAction, Equatable {
-    typealias WorkflowType = ExampleWorkflow
+	typealias WorkflowType = ExampleWorkflow
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        return nil
-    }
+	func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+		return nil
+	}
 }
 
 private struct ObservableExampleAction: WorkflowAction {
-    typealias WorkflowType = ExampleWorkflow
+	typealias WorkflowType = ExampleWorkflow
 
-    var block: () -> Void = {}
+	var block: () -> Void = {}
 
-    func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
-        block()
-        return nil
-    }
+	func apply(toState state: inout WorkflowType.State) -> WorkflowType.Output? {
+		block()
+		return nil
+	}
 }

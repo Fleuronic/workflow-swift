@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,51 +21,51 @@ import os.signpost
 public enum WorkerLogging {}
 
 extension WorkerLogging {
-    public static var enabled: Bool {
-        get { OSLog.active === OSLog.worker }
-        set { OSLog.active = newValue ? .worker : .disabled }
-    }
+	public static var enabled: Bool {
+		get { OSLog.active === OSLog.worker }
+		set { OSLog.active = newValue ? .worker : .disabled }
+	}
 }
 
 private extension OSLog {
-    static let worker = OSLog(subsystem: "com.squareup.WorkflowReactiveSwift", category: "Worker")
+	static let worker = OSLog(subsystem: "com.squareup.WorkflowReactiveSwift", category: "Worker")
 
-    static var active: OSLog = .disabled
+	static var active: OSLog = .disabled
 }
 
 // MARK: -
 
 /// Logs Worker events to OSLog
 final class WorkerLogger<WorkerType: Worker> {
-    init() {}
+	init() {}
 
-    var signpostID: OSSignpostID { OSSignpostID(log: .active, object: self) }
+	var signpostID: OSSignpostID { OSSignpostID(log: .active, object: self) }
 
-    // MARK: - Workers
+	// MARK: - Workers
 
-    func logStarted() {
-        os_signpost(
-            .begin,
-            log: .active,
-            name: "Running",
-            signpostID: signpostID,
-            "Worker: %{private}@",
-            String(describing: WorkerType.self)
-        )
-    }
+	func logStarted() {
+		os_signpost(
+			.begin,
+			log: .active,
+			name: "Running",
+			signpostID: signpostID,
+			"Worker: %{private}@",
+			String(describing: WorkerType.self)
+		)
+	}
 
-    func logFinished(status: StaticString) {
-        os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
-    }
+	func logFinished(status: StaticString) {
+		os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
+	}
 
-    func logOutput() {
-        os_signpost(
-            .event,
-            log: .active,
-            name: "Worker Event",
-            signpostID: signpostID,
-            "Event: %{private}@",
-            String(describing: WorkerType.self)
-        )
-    }
+	func logOutput() {
+		os_signpost(
+			.event,
+			log: .active,
+			name: "Worker Event",
+			signpostID: signpostID,
+			"Event: %{private}@",
+			String(describing: WorkerType.self)
+		)
+	}
 }

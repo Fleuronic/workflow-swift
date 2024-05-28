@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,360 +19,360 @@ import XCTest
 @testable import Workflow
 
 final class WorkflowNodeTests: XCTestCase {
-    func test_rendersSimpleWorkflow() {
-        let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))
-        XCTAssertEqual(node.render(), "ooF")
-    }
+	func test_rendersSimpleWorkflow() {
+		let node = WorkflowNode(workflow: SimpleWorkflow(string: "Foo"))
+		XCTAssertEqual(node.render(), "ooF")
+	}
 
-    func test_rendersNestedWorkflows() {
-        let node = WorkflowNode(
-            workflow: CompositeWorkflow(
-                a: SimpleWorkflow(string: "Hello"),
-                b: SimpleWorkflow(string: "World")
-            ))
+	func test_rendersNestedWorkflows() {
+		let node = WorkflowNode(
+			workflow: CompositeWorkflow(
+				a: SimpleWorkflow(string: "Hello"),
+				b: SimpleWorkflow(string: "World")
+			))
 
-        XCTAssertEqual(node.render().aRendering, "olleH")
-        XCTAssertEqual(node.render().bRendering, "dlroW")
-    }
+		XCTAssertEqual(node.render().aRendering, "olleH")
+		XCTAssertEqual(node.render().bRendering, "dlroW")
+	}
 
-    func test_childWorkflowsEmitOutputEvents() {
-        typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
+	func test_childWorkflowsEmitOutputEvents() {
+		typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
 
-        let workflow = CompositeWorkflow(
-            a: EventEmittingWorkflow(string: "Hello"),
-            b: SimpleWorkflow(string: "World")
-        )
+		let workflow = CompositeWorkflow(
+			a: EventEmittingWorkflow(string: "Hello"),
+			b: SimpleWorkflow(string: "World")
+		)
 
-        let node = WorkflowNode(workflow: workflow)
+		let node = WorkflowNode(workflow: workflow)
 
-        let rendering = node.render()
-        node.enableEvents()
+		let rendering = node.render()
+		node.enableEvents()
 
-        var outputs: [WorkflowType.Output] = []
+		var outputs: [WorkflowType.Output] = []
 
-        let expectation = XCTestExpectation(description: "Node output")
+		let expectation = XCTestExpectation(description: "Node output")
 
-        node.onOutput = { value in
-            if let output = value.outputEvent {
-                outputs.append(output)
-                expectation.fulfill()
-            }
-        }
+		node.onOutput = { value in
+			if let output = value.outputEvent {
+				outputs.append(output)
+				expectation.fulfill()
+			}
+		}
 
-        rendering.aRendering.someoneTappedTheButton()
+		rendering.aRendering.someoneTappedTheButton()
 
-        wait(for: [expectation], timeout: 1.0)
+		wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(outputs, [WorkflowType.Output.childADidSomething(.helloWorld)])
-    }
+		XCTAssertEqual(outputs, [WorkflowType.Output.childADidSomething(.helloWorld)])
+	}
 
-    func test_childWorkflowsEmitStateChangeEvents() {
-        typealias WorkflowType = CompositeWorkflow<StateTransitioningWorkflow, SimpleWorkflow>
+	func test_childWorkflowsEmitStateChangeEvents() {
+		typealias WorkflowType = CompositeWorkflow<StateTransitioningWorkflow, SimpleWorkflow>
 
-        let workflow = CompositeWorkflow(
-            a: StateTransitioningWorkflow(),
-            b: SimpleWorkflow(string: "World")
-        )
+		let workflow = CompositeWorkflow(
+			a: StateTransitioningWorkflow(),
+			b: SimpleWorkflow(string: "World")
+		)
 
-        let node = WorkflowNode(workflow: workflow)
+		let node = WorkflowNode(workflow: workflow)
 
-        let expectation = XCTestExpectation(description: "State Change")
-        var stateChangeCount = 0
+		let expectation = XCTestExpectation(description: "State Change")
+		var stateChangeCount = 0
 
-        node.onOutput = { _ in
-            stateChangeCount += 1
-            if stateChangeCount == 3 {
-                expectation.fulfill()
-            }
-        }
+		node.onOutput = { _ in
+			stateChangeCount += 1
+			if stateChangeCount == 3 {
+				expectation.fulfill()
+			}
+		}
 
-        var aRendering = node.render().aRendering
-        node.enableEvents()
-        aRendering.toggle()
+		var aRendering = node.render().aRendering
+		node.enableEvents()
+		aRendering.toggle()
 
-        aRendering = node.render().aRendering
-        node.enableEvents()
-        aRendering.toggle()
+		aRendering = node.render().aRendering
+		node.enableEvents()
+		aRendering.toggle()
 
-        aRendering = node.render().aRendering
-        node.enableEvents()
-        aRendering.toggle()
+		aRendering = node.render().aRendering
+		node.enableEvents()
+		aRendering.toggle()
 
-        wait(for: [expectation], timeout: 1.0)
+		wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(stateChangeCount, 3)
-    }
+		XCTAssertEqual(stateChangeCount, 3)
+	}
 
-    func test_debugUpdateInfo() {
-        typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
+	func test_debugUpdateInfo() {
+		typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
 
-        let workflow = CompositeWorkflow(
-            a: EventEmittingWorkflow(string: "Hello"),
-            b: SimpleWorkflow(string: "World")
-        )
+		let workflow = CompositeWorkflow(
+			a: EventEmittingWorkflow(string: "Hello"),
+			b: SimpleWorkflow(string: "World")
+		)
 
-        let node = WorkflowNode(workflow: workflow)
+		let node = WorkflowNode(workflow: workflow)
 
-        let rendering = node.render()
-        node.enableEvents()
+		let rendering = node.render()
+		node.enableEvents()
 
-        var emittedDebugInfo: [WorkflowUpdateDebugInfo] = []
+		var emittedDebugInfo: [WorkflowUpdateDebugInfo] = []
 
-        let expectation = XCTestExpectation(description: "Output")
-        node.onOutput = { value in
-            emittedDebugInfo.append(value.debugInfo)
-            expectation.fulfill()
-        }
+		let expectation = XCTestExpectation(description: "Output")
+		node.onOutput = { value in
+			emittedDebugInfo.append(value.debugInfo)
+			expectation.fulfill()
+		}
 
-        rendering.aRendering.someoneTappedTheButton()
+		rendering.aRendering.someoneTappedTheButton()
 
-        wait(for: [expectation], timeout: 1.0)
+		wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(emittedDebugInfo.count, 1)
+		XCTAssertEqual(emittedDebugInfo.count, 1)
 
-        let debugInfo = emittedDebugInfo[0]
+		let debugInfo = emittedDebugInfo[0]
 
-        XCTAssert(debugInfo.workflowType == "\(WorkflowType.self)")
+		XCTAssert(debugInfo.workflowType == "\(WorkflowType.self)")
 
-        /// Test the shape of the emitted debug info
-        switch debugInfo.kind {
-        case .childDidUpdate:
-            XCTFail()
-        case .didUpdate(let source):
-            switch source {
-            case .external, .worker, .sideEffect:
-                XCTFail()
-            case .subtree(let childInfo):
-                XCTAssert(childInfo.workflowType == "\(EventEmittingWorkflow.self)")
-                switch childInfo.kind {
-                case .childDidUpdate:
-                    XCTFail()
-                case .didUpdate(let source):
-                    switch source {
-                    case .external:
-                        break
-                    case .subtree(_), .worker, .sideEffect:
-                        XCTFail()
-                    }
-                }
-            }
-        }
-    }
+		/// Test the shape of the emitted debug info
+		switch debugInfo.kind {
+		case .childDidUpdate:
+			XCTFail()
+		case .didUpdate(let source):
+			switch source {
+			case .external, .worker, .sideEffect:
+				XCTFail()
+			case .subtree(let childInfo):
+				XCTAssert(childInfo.workflowType == "\(EventEmittingWorkflow.self)")
+				switch childInfo.kind {
+				case .childDidUpdate:
+					XCTFail()
+				case .didUpdate(let source):
+					switch source {
+					case .external:
+						break
+					case .subtree(_), .worker, .sideEffect:
+						XCTFail()
+					}
+				}
+			}
+		}
+	}
 
-    func test_debugTreeSnapshots() {
-        typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
+	func test_debugTreeSnapshots() {
+		typealias WorkflowType = CompositeWorkflow<EventEmittingWorkflow, SimpleWorkflow>
 
-        let workflow = CompositeWorkflow(
-            a: EventEmittingWorkflow(string: "Hello"),
-            b: SimpleWorkflow(string: "World")
-        )
-        let node = WorkflowNode(workflow: workflow)
-        _ = node.render() // the debug snapshow always reflects the tree after the latest render pass
+		let workflow = CompositeWorkflow(
+			a: EventEmittingWorkflow(string: "Hello"),
+			b: SimpleWorkflow(string: "World")
+		)
+		let node = WorkflowNode(workflow: workflow)
+		_ = node.render() // the debug snapshow always reflects the tree after the latest render pass
 
-        let snapshot = node.makeDebugSnapshot()
+		let snapshot = node.makeDebugSnapshot()
 
-        let expectedSnapshot = WorkflowHierarchyDebugSnapshot(
-            workflowType: "\(WorkflowType.self)",
-            stateDescription: "\(WorkflowType.State())",
-            children: [
-                WorkflowHierarchyDebugSnapshot.Child(
-                    key: "a",
-                    snapshot: WorkflowHierarchyDebugSnapshot(
-                        workflowType: "\(EventEmittingWorkflow.self)",
-                        stateDescription: "\(EventEmittingWorkflow.State())"
-                    )
-                ),
-                WorkflowHierarchyDebugSnapshot.Child(
-                    key: "b",
-                    snapshot: WorkflowHierarchyDebugSnapshot(
-                        workflowType: "\(SimpleWorkflow.self)",
-                        stateDescription: "\(SimpleWorkflow.State())"
-                    )
-                ),
-            ]
-        )
+		let expectedSnapshot = WorkflowHierarchyDebugSnapshot(
+			workflowType: "\(WorkflowType.self)",
+			stateDescription: "\(WorkflowType.State())",
+			children: [
+				WorkflowHierarchyDebugSnapshot.Child(
+					key: "a",
+					snapshot: WorkflowHierarchyDebugSnapshot(
+						workflowType: "\(EventEmittingWorkflow.self)",
+						stateDescription: "\(EventEmittingWorkflow.State())"
+					)
+				),
+				WorkflowHierarchyDebugSnapshot.Child(
+					key: "b",
+					snapshot: WorkflowHierarchyDebugSnapshot(
+						workflowType: "\(SimpleWorkflow.self)",
+						stateDescription: "\(SimpleWorkflow.State())"
+					)
+				),
+			]
+		)
 
-        XCTAssertEqual(snapshot, expectedSnapshot)
-    }
+		XCTAssertEqual(snapshot, expectedSnapshot)
+	}
 
-    func test_sessionCreation_init() {
-        let workflow = SimpleWorkflow(string: "abc")
+	func test_sessionCreation_init() {
+		let workflow = SimpleWorkflow(string: "abc")
 
-        let node = WorkflowNode(
-            workflow: workflow,
-            key: "key",
-            parentSession: nil,
-            observer: nil
-        )
+		let node = WorkflowNode(
+			workflow: workflow,
+			key: "key",
+			parentSession: nil,
+			observer: nil
+		)
 
-        let session = node.session
+		let session = node.session
 
-        XCTAssertNil(session.parent)
-        XCTAssertEqual(session.renderKey, "key")
-        XCTAssertEqual("\(session.workflowType)", "\(SimpleWorkflow.self)")
-    }
+		XCTAssertNil(session.parent)
+		XCTAssertEqual(session.renderKey, "key")
+		XCTAssertEqual("\(session.workflowType)", "\(SimpleWorkflow.self)")
+	}
 
-    func test_sessionCreation_render() {
-        let workflow = CompositeWorkflow(
-            a: SimpleWorkflow(string: "left"),
-            b: EventEmittingWorkflow(string: "right")
-        )
+	func test_sessionCreation_render() {
+		let workflow = CompositeWorkflow(
+			a: SimpleWorkflow(string: "left"),
+			b: EventEmittingWorkflow(string: "right")
+		)
 
-        let sessionCollector = SessionCollectingObserver()
+		let sessionCollector = SessionCollectingObserver()
 
-        let node = WorkflowNode(
-            workflow: workflow,
-            observer: sessionCollector
-        )
+		let node = WorkflowNode(
+			workflow: workflow,
+			observer: sessionCollector
+		)
 
-        XCTAssertEqual(sessionCollector.sessions.count, 1)
+		XCTAssertEqual(sessionCollector.sessions.count, 1)
 
-        _ = node.render()
+		_ = node.render()
 
-        let sessions = sessionCollector.sessions
+		let sessions = sessionCollector.sessions
 
-        XCTAssertEqual(sessions.count, 3)
-        XCTAssertNotNil(sessions[0].workflowType is CompositeWorkflow<SimpleWorkflow, EventEmittingWorkflow>.Type)
-        XCTAssertTrue(sessions[1].workflowType is SimpleWorkflow.Type)
-        XCTAssertTrue(sessions[2].workflowType is EventEmittingWorkflow.Type)
-        XCTAssertEqual(sessions[0].sessionID, sessions[1].parent?.sessionID)
-    }
+		XCTAssertEqual(sessions.count, 3)
+		XCTAssertNotNil(sessions[0].workflowType is CompositeWorkflow<SimpleWorkflow, EventEmittingWorkflow>.Type)
+		XCTAssertTrue(sessions[1].workflowType is SimpleWorkflow.Type)
+		XCTAssertTrue(sessions[2].workflowType is EventEmittingWorkflow.Type)
+		XCTAssertEqual(sessions[0].sessionID, sessions[1].parent?.sessionID)
+	}
 }
 
 /// Renders two child state machines of types `A` and `B`.
 private struct CompositeWorkflow<A, B>: Workflow where
-    A: Workflow,
-    B: Workflow {
-    var a: A
-    var b: B
+	A: Workflow,
+	B: Workflow {
+	var a: A
+	var b: B
 }
 
 extension CompositeWorkflow {
-    struct State {}
+	struct State {}
 
-    struct Rendering {
-        var aRendering: A.Rendering
-        var bRendering: B.Rendering
-    }
+	struct Rendering {
+		var aRendering: A.Rendering
+		var bRendering: B.Rendering
+	}
 
-    enum Output {
-        case childADidSomething(A.Output)
-        case childBDidSomething(B.Output)
-    }
+	enum Output {
+		case childADidSomething(A.Output)
+		case childBDidSomething(B.Output)
+	}
 
-    enum Event: WorkflowAction {
-        case a(A.Output)
-        case b(B.Output)
+	enum Event: WorkflowAction {
+		case a(A.Output)
+		case b(B.Output)
 
-        typealias WorkflowType = CompositeWorkflow<A, B>
+		typealias WorkflowType = CompositeWorkflow<A, B>
 
-        func apply(toState state: inout CompositeWorkflow<A, B>.State) -> CompositeWorkflow<A, B>.Output? {
-            switch self {
-            case .a(let childOutput):
-                return .childADidSomething(childOutput)
-            case .b(let childOutput):
-                return .childBDidSomething(childOutput)
-            }
-        }
-    }
+		func apply(toState state: inout CompositeWorkflow<A, B>.State) -> CompositeWorkflow<A, B>.Output? {
+			switch self {
+			case .a(let childOutput):
+				return .childADidSomething(childOutput)
+			case .b(let childOutput):
+				return .childBDidSomething(childOutput)
+			}
+		}
+	}
 
-    func makeInitialState() -> CompositeWorkflow<A, B>.State {
-        return State()
-    }
+	func makeInitialState() -> CompositeWorkflow<A, B>.State {
+		return State()
+	}
 
-    func render(state: State, context: RenderContext<CompositeWorkflow<A, B>>) -> Rendering {
-        return Rendering(
-            aRendering: a
-                .mapOutput { Event.a($0) }
-                .rendered(in: context, key: "a"),
-            bRendering: b
-                .mapOutput { Event.b($0) }
-                .rendered(in: context, key: "b")
-        )
-    }
+	func render(state: State, context: RenderContext<CompositeWorkflow<A, B>>) -> Rendering {
+		return Rendering(
+			aRendering: a
+				.mapOutput { Event.a($0) }
+				.rendered(in: context, key: "a"),
+			bRendering: b
+				.mapOutput { Event.b($0) }
+				.rendered(in: context, key: "b")
+		)
+	}
 }
 
 extension CompositeWorkflow.Rendering: Equatable where A.Rendering: Equatable, B.Rendering: Equatable {
-    fileprivate static func == (lhs: CompositeWorkflow.Rendering, rhs: CompositeWorkflow.Rendering) -> Bool {
-        return lhs.aRendering == rhs.aRendering
-            && lhs.bRendering == rhs.bRendering
-    }
+	fileprivate static func == (lhs: CompositeWorkflow.Rendering, rhs: CompositeWorkflow.Rendering) -> Bool {
+		return lhs.aRendering == rhs.aRendering
+			&& lhs.bRendering == rhs.bRendering
+	}
 }
 
 extension CompositeWorkflow.Output: Equatable where A.Output: Equatable, B.Output: Equatable {
-    fileprivate static func == (lhs: CompositeWorkflow.Output, rhs: CompositeWorkflow.Output) -> Bool {
-        switch (lhs, rhs) {
-        case (.childADidSomething(let l), .childADidSomething(let r)):
-            return l == r
-        case (.childBDidSomething(let l), .childBDidSomething(let r)):
-            return l == r
-        default:
-            return false
-        }
-    }
+	fileprivate static func == (lhs: CompositeWorkflow.Output, rhs: CompositeWorkflow.Output) -> Bool {
+		switch (lhs, rhs) {
+		case (.childADidSomething(let l), .childADidSomething(let r)):
+			return l == r
+		case (.childBDidSomething(let l), .childBDidSomething(let r)):
+			return l == r
+		default:
+			return false
+		}
+	}
 }
 
 /// Has no state or output, simply renders a reversed string
 private struct SimpleWorkflow: Workflow {
-    var string: String
+	var string: String
 
-    struct State {}
+	struct State {}
 
-    func makeInitialState() -> State {
-        return State()
-    }
+	func makeInitialState() -> State {
+		return State()
+	}
 
-    func render(state: State, context: RenderContext<SimpleWorkflow>) -> String {
-        return String(string.reversed())
-    }
+	func render(state: State, context: RenderContext<SimpleWorkflow>) -> String {
+		return String(string.reversed())
+	}
 }
 
 /// Renders to a model that contains a callback, which in turn sends an output event.
 private struct EventEmittingWorkflow: Workflow {
-    var string: String
+	var string: String
 }
 
 extension EventEmittingWorkflow {
-    struct State {}
+	struct State {}
 
-    struct Rendering {
-        var someoneTappedTheButton: () -> Void
-    }
+	struct Rendering {
+		var someoneTappedTheButton: () -> Void
+	}
 
-    func makeInitialState() -> State {
-        return State()
-    }
+	func makeInitialState() -> State {
+		return State()
+	}
 
-    enum Event: Equatable, WorkflowAction {
-        case tapped
+	enum Event: Equatable, WorkflowAction {
+		case tapped
 
-        typealias WorkflowType = EventEmittingWorkflow
+		typealias WorkflowType = EventEmittingWorkflow
 
-        func apply(toState state: inout EventEmittingWorkflow.State) -> EventEmittingWorkflow.Output? {
-            switch self {
-            case .tapped:
-                return .helloWorld
-            }
-        }
-    }
+		func apply(toState state: inout EventEmittingWorkflow.State) -> EventEmittingWorkflow.Output? {
+			switch self {
+			case .tapped:
+				return .helloWorld
+			}
+		}
+	}
 
-    enum Output: Equatable {
-        case helloWorld
-    }
+	enum Output: Equatable {
+		case helloWorld
+	}
 
-    func render(state: State, context: RenderContext<EventEmittingWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: Event.self)
+	func render(state: State, context: RenderContext<EventEmittingWorkflow>) -> Rendering {
+		let sink = context.makeSink(of: Event.self)
 
-        return Rendering(someoneTappedTheButton: { sink.send(.tapped) })
-    }
+		return Rendering(someoneTappedTheButton: { sink.send(.tapped) })
+	}
 }
 
 private class SessionCollectingObserver: WorkflowObserver {
-    var sessions: [WorkflowSession] = []
+	var sessions: [WorkflowSession] = []
 
-    func sessionDidBegin(_ session: WorkflowSession) {
-        sessions.append(session)
-    }
+	func sessionDidBegin(_ session: WorkflowSession) {
+		sessions.append(session)
+	}
 }
 
 #if compiler(>=5.0)

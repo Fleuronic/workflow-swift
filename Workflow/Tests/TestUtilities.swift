@@ -19,39 +19,39 @@ import Workflow
 
 /// Renders to a model that contains a callback, which in turn sends an output event.
 struct StateTransitioningWorkflow: Workflow {
-    typealias State = Bool
+	typealias State = Bool
 
-    typealias Output = Never
+	typealias Output = Never
 
-    struct Rendering {
-        var toggle: () -> Void
-        var currentValue: Bool
-    }
+	struct Rendering {
+		var toggle: () -> Void
+		var currentValue: Bool
+	}
 
-    func makeInitialState() -> Bool {
-        return false
-    }
+	func makeInitialState() -> Bool {
+		return false
+	}
 
-    func render(state: State, context: RenderContext<StateTransitioningWorkflow>) -> Rendering {
-        let sink = context.makeSink(of: Event.self)
+	func render(state: State, context: RenderContext<StateTransitioningWorkflow>) -> Rendering {
+		let sink = context.makeSink(of: Event.self)
 
-        return Rendering(
-            toggle: { sink.send(.toggle) },
-            currentValue: state
-        )
-    }
+		return Rendering(
+			toggle: { sink.send(.toggle) },
+			currentValue: state
+		)
+	}
 
-    enum Event: WorkflowAction {
-        case toggle
+	enum Event: WorkflowAction {
+		case toggle
 
-        typealias WorkflowType = StateTransitioningWorkflow
+		typealias WorkflowType = StateTransitioningWorkflow
 
-        func apply(toState state: inout Bool) -> Never? {
-            switch self {
-            case .toggle:
-                state.toggle()
-            }
-            return nil
-        }
-    }
+		func apply(toState state: inout Bool) -> Never? {
+			switch self {
+			case .toggle:
+				state.toggle()
+			}
+			return nil
+		}
+	}
 }

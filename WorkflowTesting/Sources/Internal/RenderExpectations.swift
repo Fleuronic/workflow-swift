@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,62 +20,62 @@
 @testable import Workflow
 
 extension RenderTester {
-    internal class AnyExpectedWorkflow {
-        let workflowType: Any.Type
-        let key: String
-        let file: StaticString
-        let line: UInt
+	internal class AnyExpectedWorkflow {
+		let workflowType: Any.Type
+		let key: String
+		let file: StaticString
+		let line: UInt
 
-        fileprivate init(workflowType: Any.Type, key: String, file: StaticString, line: UInt) {
-            self.workflowType = workflowType
-            self.key = key
-            self.file = file
-            self.line = line
-        }
-    }
+		fileprivate init(workflowType: Any.Type, key: String, file: StaticString, line: UInt) {
+			self.workflowType = workflowType
+			self.key = key
+			self.file = file
+			self.line = line
+		}
+	}
 
-    internal class ExpectedWorkflow<ExpectedWorkflowType: Workflow>: AnyExpectedWorkflow {
-        let rendering: ExpectedWorkflowType.Rendering
-        let output: ExpectedWorkflowType.Output?
-        let assertions: (ExpectedWorkflowType) -> Void
+	internal class ExpectedWorkflow<ExpectedWorkflowType: Workflow>: AnyExpectedWorkflow {
+		let rendering: ExpectedWorkflowType.Rendering
+		let output: ExpectedWorkflowType.Output?
+		let assertions: (ExpectedWorkflowType) -> Void
 
-        init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }, file: StaticString, line: UInt) {
-            self.rendering = rendering
-            self.output = output
-            self.assertions = assertions
-            super.init(workflowType: ExpectedWorkflowType.self, key: key, file: file, line: line)
-        }
-    }
+		init(key: String, rendering: ExpectedWorkflowType.Rendering, output: ExpectedWorkflowType.Output?, assertions: @escaping (ExpectedWorkflowType) -> Void = { _ in }, file: StaticString, line: UInt) {
+			self.rendering = rendering
+			self.output = output
+			self.assertions = assertions
+			super.init(workflowType: ExpectedWorkflowType.self, key: key, file: file, line: line)
+		}
+	}
 }
 
 extension RenderTester {
-    internal class ExpectedSideEffect<ExpectedWorkflowType: Workflow> {
-        let key: AnyHashable
-        let file: StaticString
-        let line: UInt
+	internal class ExpectedSideEffect<ExpectedWorkflowType: Workflow> {
+		let key: AnyHashable
+		let file: StaticString
+		let line: UInt
 
-        init(key: AnyHashable, file: StaticString, line: UInt) {
-            self.key = key
-            self.file = file
-            self.line = line
-        }
+		init(key: AnyHashable, file: StaticString, line: UInt) {
+			self.key = key
+			self.file = file
+			self.line = line
+		}
 
-        func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {}
-    }
+		func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {}
+	}
 
-    internal final class ExpectedSideEffectWithAction<ExpectedWorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<ExpectedWorkflowType> where ActionType.WorkflowType == ExpectedWorkflowType {
-        let action: ActionType
+	internal final class ExpectedSideEffectWithAction<ExpectedWorkflowType, ActionType: WorkflowAction>: ExpectedSideEffect<ExpectedWorkflowType> where ActionType.WorkflowType == ExpectedWorkflowType {
+		let action: ActionType
 
-        internal init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {
-            self.action = action
-            super.init(key: key, file: file, line: line)
-        }
+		internal init(key: AnyHashable, action: ActionType, file: StaticString, line: UInt) {
+			self.action = action
+			super.init(key: key, file: file, line: line)
+		}
 
-        override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {
-            let sink = context.makeSink(of: ActionType.self)
-            sink.send(action)
-        }
-    }
+		override func apply<ContextType>(context: ContextType) where ContextType: RenderContextType, ContextType.WorkflowType == ExpectedWorkflowType {
+			let sink = context.makeSink(of: ActionType.self)
+			sink.send(action)
+		}
+	}
 }
 
 #endif

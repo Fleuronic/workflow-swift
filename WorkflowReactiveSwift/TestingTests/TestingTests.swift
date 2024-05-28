@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,160 +23,160 @@ import WorkflowTesting
 import XCTest
 
 class WorkflowReactiveSwiftTestingTests: XCTestCase {
-    func test_workers() {
-        let renderTester = TestWorkflow()
-            .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
+	func test_workers() {
+		let renderTester = TestWorkflow()
+			.renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
-        renderTester
-            .expect(worker: TestWorker(input: "otherText"))
-            .render { _ in }
-    }
+		renderTester
+			.expect(worker: TestWorker(input: "otherText"))
+			.render { _ in }
+	}
 
-    func test_workerOutput_updatesState() {
-        let renderTester = TestWorkflow()
-            .renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
+	func test_workerOutput_updatesState() {
+		let renderTester = TestWorkflow()
+			.renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
 
-        renderTester
-            .expect(
-                worker: TestWorker(input: "otherText"),
-                producingOutput: "otherText"
-            )
-            .render { _ in }
-            .verifyState { state in
-                XCTAssertEqual(state, TestWorkflow.State(mode: .worker(input: "otherText"), output: "otherText"))
-            }
-    }
+		renderTester
+			.expect(
+				worker: TestWorker(input: "otherText"),
+				producingOutput: "otherText"
+			)
+			.render { _ in }
+			.verifyState { state in
+				XCTAssertEqual(state, TestWorkflow.State(mode: .worker(input: "otherText"), output: "otherText"))
+			}
+	}
 
-    func test_worker_missing() {
-        let tester = TestWorkflow()
-            .renderTester()
-            .expect(
-                worker: TestWorker(input: "input")
-            )
+	func test_worker_missing() {
+		let tester = TestWorkflow()
+			.renderTester()
+			.expect(
+				worker: TestWorker(input: "input")
+			)
 
-        expectingFailure(#"Expected child workflow of type: WorkerWorkflow<TestWorker>, key: """#) {
-            tester.render { _ in }
-        }
-    }
+		expectingFailure(#"Expected child workflow of type: WorkerWorkflow<TestWorker>, key: """#) {
+			tester.render { _ in }
+		}
+	}
 
-    func test_worker_mismatch() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
-            .expect(
-                worker: TestWorker(input: "not-test")
-            )
+	func test_worker_mismatch() {
+		let tester = TestWorkflow()
+			.renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
+			.expect(
+				worker: TestWorker(input: "not-test")
+			)
 
-        expectingFailures([
-            #"Workers of type TestWorker not equivalent. Expected: TestWorker(input: "not-test"). Got: TestWorker(input: "test")"#,
-        ]) {
-            tester.render { _ in }
-        }
-    }
+		expectingFailures([
+			#"Workers of type TestWorker not equivalent. Expected: TestWorker(input: "not-test"). Got: TestWorker(input: "test")"#,
+		]) {
+			tester.render { _ in }
+		}
+	}
 
-    func test_worker_unexpected() {
-        let tester = TestWorkflow()
-            .renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
+	func test_worker_unexpected() {
+		let tester = TestWorkflow()
+			.renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
 
-        expectingFailure(#"Unexpected workflow of type WorkerWorkflow<TestWorker> with key """#) {
-            tester.render { _ in }
-        }
-    }
+		expectingFailure(#"Unexpected workflow of type WorkerWorkflow<TestWorker> with key """#) {
+			tester.render { _ in }
+		}
+	}
 
-    // MARK: - Failure Recording
+	// MARK: - Failure Recording
 
-    var expectedFailureStrings: [String] = []
+	var expectedFailureStrings: [String] = []
 
-    @discardableResult
-    func expectingFailure<Result>(
-        _ messageSubstring: String,
-        file: StaticString = #file, line: UInt = #line,
-        perform: () -> Result
-    ) -> Result {
-        return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
-    }
+	@discardableResult
+	func expectingFailure<Result>(
+		_ messageSubstring: String,
+		file: StaticString = #file, line: UInt = #line,
+		perform: () -> Result
+	) -> Result {
+		return expectingFailures([messageSubstring], file: file, line: line, perform: perform)
+	}
 
-    @discardableResult
-    func expectingFailures<Result>(
-        _ messageSubstrings: [String],
-        file: StaticString = #file, line: UInt = #line,
-        perform: () -> Result
-    ) -> Result {
-        expectedFailureStrings = messageSubstrings
-        let result = perform()
-        if !expectedFailureStrings.isEmpty {
-            let leftOverExpectedFailures = expectedFailureStrings
-            expectedFailureStrings = []
-            for failure in leftOverExpectedFailures {
-                XCTFail(#"Expected failure matching "\#(failure)""#, file: file, line: line)
-            }
-        }
-        return result
-    }
+	@discardableResult
+	func expectingFailures<Result>(
+		_ messageSubstrings: [String],
+		file: StaticString = #file, line: UInt = #line,
+		perform: () -> Result
+	) -> Result {
+		expectedFailureStrings = messageSubstrings
+		let result = perform()
+		if !expectedFailureStrings.isEmpty {
+			let leftOverExpectedFailures = expectedFailureStrings
+			expectedFailureStrings = []
+			for failure in leftOverExpectedFailures {
+				XCTFail(#"Expected failure matching "\#(failure)""#, file: file, line: line)
+			}
+		}
+		return result
+	}
 
-    /// Check for the given failure description and remove it if there’s a matching expected failure
-    /// - Parameter description: The failure description to check & remove
-    /// - Returns: `true` if the failure was expected and removed, otherwise `false`
-    private func removeFailure(withDescription description: String) -> Bool {
-        if let matchedIndex = expectedFailureStrings.firstIndex(where: { description.contains($0) }) {
-            expectedFailureStrings.remove(at: matchedIndex)
-            return true
-        } else {
-            return false
-        }
-    }
+	/// Check for the given failure description and remove it if there’s a matching expected failure
+	/// - Parameter description: The failure description to check & remove
+	/// - Returns: `true` if the failure was expected and removed, otherwise `false`
+	private func removeFailure(withDescription description: String) -> Bool {
+		if let matchedIndex = expectedFailureStrings.firstIndex(where: { description.contains($0) }) {
+			expectedFailureStrings.remove(at: matchedIndex)
+			return true
+		} else {
+			return false
+		}
+	}
 
-    // Undeprecated API on Xcode 12+ (which ships with Swift 5.3)
-    override func record(_ issue: XCTIssue) {
-        if removeFailure(withDescription: issue.compactDescription) {
-            // Don’t forward the issue, it was expected
-        } else {
-            super.record(issue)
-        }
-    }
+	// Undeprecated API on Xcode 12+ (which ships with Swift 5.3)
+	override func record(_ issue: XCTIssue) {
+		if removeFailure(withDescription: issue.compactDescription) {
+			// Don’t forward the issue, it was expected
+		} else {
+			super.record(issue)
+		}
+	}
 }
 
 private struct TestWorkflow: Workflow {
-    struct State: Equatable {
-        enum Mode: Equatable {
-            case idle
-            case worker(input: String)
-        }
+	struct State: Equatable {
+		enum Mode: Equatable {
+			case idle
+			case worker(input: String)
+		}
 
-        let mode: Mode
-        var output: String
-    }
+		let mode: Mode
+		var output: String
+	}
 
-    func makeInitialState() -> State {
-        .init(mode: .idle, output: "")
-    }
+	func makeInitialState() -> State {
+		.init(mode: .idle, output: "")
+	}
 
-    func workflowDidChange(from previousWorkflow: TestWorkflow, state: inout State) {}
+	func workflowDidChange(from previousWorkflow: TestWorkflow, state: inout State) {}
 
-    func render(state: State, context: RenderContext<TestWorkflow>) {
-        switch state.mode {
-        case .idle:
-            break
-        case .worker(input: let input):
-            TestWorker(input: input)
-                .mapOutput { output in
-                    AnyWorkflowAction {
-                        $0.output = output
-                        return nil
-                    }
-                }
-                .running(in: context)
-        }
-    }
+	func render(state: State, context: RenderContext<TestWorkflow>) {
+		switch state.mode {
+		case .idle:
+			break
+		case .worker(input: let input):
+			TestWorker(input: input)
+				.mapOutput { output in
+					AnyWorkflowAction {
+						$0.output = output
+						return nil
+					}
+				}
+				.running(in: context)
+		}
+	}
 }
 
 private struct TestWorker: Worker {
-    let input: String
+	let input: String
 
-    func run() -> SignalProducer<String, Never> {
-        return SignalProducer(value: input)
-    }
+	func run() -> SignalProducer<String, Never> {
+		return SignalProducer(value: input)
+	}
 
-    func isEquivalent(to otherWorker: TestWorker) -> Bool {
-        input == otherWorker.input
-    }
+	func isEquivalent(to otherWorker: TestWorker) -> Bool {
+		input == otherWorker.input
+	}
 }

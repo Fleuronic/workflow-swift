@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,133 +23,133 @@ import Workflow
 
 /// Drives view controllers from a root Workflow.
 public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {
-    /// Emits output events from the bound workflow.
-    public var output: Signal<Output, Never> {
-        return workflowHost.output
-    }
+	/// Emits output events from the bound workflow.
+	public var output: Signal<Output, Never> {
+		return workflowHost.output
+	}
 
-    private(set) var rootViewController: UIViewController
+	private(set) var rootViewController: UIViewController
 
-    private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>
+	private let workflowHost: WorkflowHost<AnyWorkflow<ScreenType, Output>>
 
-    private let (lifetime, token) = Lifetime.make()
+	private let (lifetime, token) = Lifetime.make()
 
-    public var rootViewEnvironment: ViewEnvironment {
-        didSet {
-            update(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
-        }
-    }
+	public var rootViewEnvironment: ViewEnvironment {
+		didSet {
+			update(screen: workflowHost.rendering.value, environment: rootViewEnvironment)
+		}
+	}
 
-    public init<W: AnyWorkflowConvertible>(
-        workflow: W,
-        rootViewEnvironment: ViewEnvironment = .empty,
-        observers: [WorkflowObserver] = []
-    ) where W.Rendering == ScreenType, W.Output == Output {
-        self.workflowHost = WorkflowHost(
-            workflow: workflow.asAnyWorkflow(),
-            observers: observers
-        )
+	public init<W: AnyWorkflowConvertible>(
+		workflow: W,
+		rootViewEnvironment: ViewEnvironment = .empty,
+		observers: [WorkflowObserver] = []
+	) where W.Rendering == ScreenType, W.Output == Output {
+		self.workflowHost = WorkflowHost(
+			workflow: workflow.asAnyWorkflow(),
+			observers: observers
+		)
 
-        self.rootViewController = workflowHost
-            .rendering
-            .value
-            .buildViewController(in: rootViewEnvironment)
+		self.rootViewController = workflowHost
+			.rendering
+			.value
+			.buildViewController(in: rootViewEnvironment)
 
-        self.rootViewEnvironment = rootViewEnvironment
+		self.rootViewEnvironment = rootViewEnvironment
 
-        super.init(nibName: nil, bundle: nil)
+		super.init(nibName: nil, bundle: nil)
 
-        addChild(rootViewController)
-        rootViewController.didMove(toParent: self)
+		addChild(rootViewController)
+		rootViewController.didMove(toParent: self)
 
-        workflowHost
-            .rendering
-            .signal
-            .take(during: lifetime)
-            .observeValues { [weak self] screen in
-                guard let self = self else { return }
+		workflowHost
+			.rendering
+			.signal
+			.take(during: lifetime)
+			.observeValues { [weak self] screen in
+				guard let self = self else { return }
 
-                self.update(screen: screen, environment: self.rootViewEnvironment)
-            }
-    }
+				self.update(screen: screen, environment: self.rootViewEnvironment)
+			}
+	}
 
-    /// Updates the root Workflow in this container.
-    public func update<W: AnyWorkflowConvertible>(workflow: W) where W.Rendering == ScreenType, W.Output == Output {
-        workflowHost.update(workflow: workflow.asAnyWorkflow())
-    }
+	/// Updates the root Workflow in this container.
+	public func update<W: AnyWorkflowConvertible>(workflow: W) where W.Rendering == ScreenType, W.Output == Output {
+		workflowHost.update(workflow: workflow.asAnyWorkflow())
+	}
 
-    @available(*, unavailable)
-    public required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+	@available(*, unavailable)
+	public required init?(coder aDecoder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
 
-    private func update(screen: ScreenType, environment: ViewEnvironment) {
-        update(child: \.rootViewController, with: screen, in: environment)
+	private func update(screen: ScreenType, environment: ViewEnvironment) {
+		update(child: \.rootViewController, with: screen, in: environment)
 
-        updatePreferredContentSizeIfNeeded()
-    }
+		updatePreferredContentSizeIfNeeded()
+	}
 
-    override public func viewDidLoad() {
-        super.viewDidLoad()
+	override public func viewDidLoad() {
+		super.viewDidLoad()
 
-        view.backgroundColor = .white
+		view.backgroundColor = .white
 
-        rootViewController.view.frame = view.bounds
-        view.addSubview(rootViewController.view)
+		rootViewController.view.frame = view.bounds
+		view.addSubview(rootViewController.view)
 
-        updatePreferredContentSizeIfNeeded()
-    }
+		updatePreferredContentSizeIfNeeded()
+	}
 
-    override public func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        rootViewController.view.frame = view.bounds
-    }
+	override public func viewDidLayoutSubviews() {
+		super.viewDidLayoutSubviews()
+		rootViewController.view.frame = view.bounds
+	}
 
-    override public var childForStatusBarStyle: UIViewController? {
-        return rootViewController
-    }
+	override public var childForStatusBarStyle: UIViewController? {
+		return rootViewController
+	}
 
-    override public var childForStatusBarHidden: UIViewController? {
-        return rootViewController
-    }
+	override public var childForStatusBarHidden: UIViewController? {
+		return rootViewController
+	}
 
-    override public var childForHomeIndicatorAutoHidden: UIViewController? {
-        return rootViewController
-    }
+	override public var childForHomeIndicatorAutoHidden: UIViewController? {
+		return rootViewController
+	}
 
-    override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
-        return rootViewController
-    }
+	override public var childForScreenEdgesDeferringSystemGestures: UIViewController? {
+		return rootViewController
+	}
 
-    override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return rootViewController.supportedInterfaceOrientations
-    }
+	override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+		return rootViewController.supportedInterfaceOrientations
+	}
 
-    override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
-        return rootViewController.preferredStatusBarUpdateAnimation
-    }
+	override public var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+		return rootViewController.preferredStatusBarUpdateAnimation
+	}
 
-    override public var childViewControllerForPointerLock: UIViewController? {
-        return rootViewController
-    }
+	override public var childViewControllerForPointerLock: UIViewController? {
+		return rootViewController
+	}
 
-    override public func preferredContentSizeDidChange(
-        forChildContentContainer container: UIContentContainer
-    ) {
-        super.preferredContentSizeDidChange(forChildContentContainer: container)
+	override public func preferredContentSizeDidChange(
+		forChildContentContainer container: UIContentContainer
+	) {
+		super.preferredContentSizeDidChange(forChildContentContainer: container)
 
-        guard container === rootViewController else { return }
+		guard container === rootViewController else { return }
 
-        updatePreferredContentSizeIfNeeded()
-    }
+		updatePreferredContentSizeIfNeeded()
+	}
 
-    private func updatePreferredContentSizeIfNeeded() {
-        let newPreferredContentSize = rootViewController.preferredContentSize
+	private func updatePreferredContentSizeIfNeeded() {
+		let newPreferredContentSize = rootViewController.preferredContentSize
 
-        guard newPreferredContentSize != preferredContentSize else { return }
+		guard newPreferredContentSize != preferredContentSize else { return }
 
-        preferredContentSize = newPreferredContentSize
-    }
+		preferredContentSize = newPreferredContentSize
+	}
 }
 
 #endif

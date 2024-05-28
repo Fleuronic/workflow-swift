@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,421 +20,421 @@ import WorkflowTesting
 import XCTest
 
 final class WorkflowRenderTesterTests: XCTestCase {
-    func test_render() {
-        let renderTester = TestWorkflow(initialText: "initial").renderTester()
-        var testedAssertion = false
+	func test_render() {
+		let renderTester = TestWorkflow(initialText: "initial").renderTester()
+		var testedAssertion = false
 
-        renderTester
-            .render { screen in
-                XCTAssertEqual("initial", screen.text)
-                testedAssertion = true
-            }
-            .assert(
-                state: TestWorkflow.State(
-                    text: "initial",
-                    substate: .idle
-                )
-            )
+		renderTester
+			.render { screen in
+				XCTAssertEqual("initial", screen.text)
+				testedAssertion = true
+			}
+			.assert(
+				state: TestWorkflow.State(
+					text: "initial",
+					substate: .idle
+				)
+			)
 
-        XCTAssertTrue(testedAssertion)
-    }
+		XCTAssertTrue(testedAssertion)
+	}
 
-    func test_simple_render() {
-        let renderTester = TestWorkflow(initialText: "initial").renderTester()
+	func test_simple_render() {
+		let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
-        renderTester
-            .render { screen in
-                XCTAssertEqual("initial", screen.text)
-            }
-            .assertNoAction()
-    }
+		renderTester
+			.render { screen in
+				XCTAssertEqual("initial", screen.text)
+			}
+			.assertNoAction()
+	}
 
-    func test_simple_render_throw() throws {
-        let renderTester = TestWorkflow(initialText: "initial").renderTester()
+	func test_simple_render_throw() throws {
+		let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
-        try renderTester
-            .render { screen in
-                let text = try XCTUnwrap(screen.text)
-                XCTAssertEqual("initial", text)
-            }
-            .assertNoAction()
-    }
+		try renderTester
+			.render { screen in
+				let text = try XCTUnwrap(screen.text)
+				XCTAssertEqual("initial", text)
+			}
+			.assertNoAction()
+	}
 
-    func test_action() {
-        let renderTester = TestWorkflow(initialText: "initial").renderTester()
+	func test_action() {
+		let renderTester = TestWorkflow(initialText: "initial").renderTester()
 
-        renderTester
-            .render { screen in
-                XCTAssertEqual("initial", screen.text)
-                screen.tapped()
-            }
-            .assert(
-                state: TestWorkflow.State(
-                    text: "initial",
-                    substate: .waiting
-                )
-            )
-    }
+		renderTester
+			.render { screen in
+				XCTAssertEqual("initial", screen.text)
+				screen.tapped()
+			}
+			.assert(
+				state: TestWorkflow.State(
+					text: "initial",
+					substate: .waiting
+				)
+			)
+	}
 
-    func test_sideEffects() {
-        let renderTester = SideEffectWorkflow().renderTester()
+	func test_sideEffects() {
+		let renderTester = SideEffectWorkflow().renderTester()
 
-        renderTester
-            .expectSideEffect(
-                key: TestSideEffectKey(),
-                producingAction: SideEffectWorkflow.Action.testAction
-            )
-            .render { _ in }
-            .assert(state: .success)
-    }
+		renderTester
+			.expectSideEffect(
+				key: TestSideEffectKey(),
+				producingAction: SideEffectWorkflow.Action.testAction
+			)
+			.render { _ in }
+			.assert(state: .success)
+	}
 
-    func test_output() {
-        OutputWorkflow()
-            .renderTester()
-            .render { rendering in
-                rendering.tapped()
-            }
-            .assert(output: .success)
-    }
+	func test_output() {
+		OutputWorkflow()
+			.renderTester()
+			.render { rendering in
+				rendering.tapped()
+			}
+			.assert(output: .success)
+	}
 
-    func test_ignoredOutput() {
-        OutputIgnoringWorkflow(text: "hello")
-            .renderTester()
-            .expectWorkflowIgnoringOutput(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh"
-            )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }
-            .assertNoOutput()
-    }
+	func test_ignoredOutput() {
+		OutputIgnoringWorkflow(text: "hello")
+			.renderTester()
+			.expectWorkflowIgnoringOutput(
+				type: ChildWorkflow.self,
+				producingRendering: "olleh"
+			)
+			.render { rendering in
+				XCTAssertEqual("olleh", rendering)
+			}
+			.assertNoOutput()
+	}
 
-    func test_ignoredOutput_opaqueChild() {
-        OpaqueChildOutputIgnoringWorkflow(
-            childProvider: {
-                OutputWorkflow()
-                    .mapRendering { _ in "screen" }
-                    .asAnyWorkflow()
-            }
-        )
-        .renderTester()
-        .expectWorkflowIgnoringOutput(
-            type: AnyWorkflow<String, OutputWorkflow.Output>.self,
-            producingRendering: "test"
-        )
-        .render { rendering in
-            XCTAssertEqual(rendering, "test")
-        }
-    }
+	func test_ignoredOutput_opaqueChild() {
+		OpaqueChildOutputIgnoringWorkflow(
+			childProvider: {
+				OutputWorkflow()
+					.mapRendering { _ in "screen" }
+					.asAnyWorkflow()
+			}
+		)
+		.renderTester()
+		.expectWorkflowIgnoringOutput(
+			type: AnyWorkflow<String, OutputWorkflow.Output>.self,
+			producingRendering: "test"
+		)
+		.render { rendering in
+			XCTAssertEqual(rendering, "test")
+		}
+	}
 
-    func test_opaqueChild() {
-        OpaqueChildWorkflow(
-            childProvider: {
-                MockChildWorkflow().asAnyWorkflow()
-            }
-        )
-        .renderTester()
-        .expectWorkflow(
-            type: MockChildWorkflow.self,
-            producingRendering: "test"
-        )
-        .render { rendering in
-            XCTAssertEqual(rendering, "test")
-        }
-    }
+	func test_opaqueChild() {
+		OpaqueChildWorkflow(
+			childProvider: {
+				MockChildWorkflow().asAnyWorkflow()
+			}
+		)
+		.renderTester()
+		.expectWorkflow(
+			type: MockChildWorkflow.self,
+			producingRendering: "test"
+		)
+		.render { rendering in
+			XCTAssertEqual(rendering, "test")
+		}
+	}
 
-    func test_childWorkflow() {
-        ParentWorkflow(initialText: "hello")
-            .renderTester()
-            .expectWorkflow(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh"
-            )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }
-            .assertNoAction()
-    }
+	func test_childWorkflow() {
+		ParentWorkflow(initialText: "hello")
+			.renderTester()
+			.expectWorkflow(
+				type: ChildWorkflow.self,
+				producingRendering: "olleh"
+			)
+			.render { rendering in
+				XCTAssertEqual("olleh", rendering)
+			}
+			.assertNoAction()
+	}
 
-    func test_childWorkflowAction() {
-        ParentWorkflow(initialText: "hello")
-            .renderTester()
-            .expectWorkflow(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh",
-                producingOutput: ChildWorkflow.Output.success
-            )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }.assert(action: ParentWorkflow.Action.childSuccess)
-    }
+	func test_childWorkflowAction() {
+		ParentWorkflow(initialText: "hello")
+			.renderTester()
+			.expectWorkflow(
+				type: ChildWorkflow.self,
+				producingRendering: "olleh",
+				producingOutput: ChildWorkflow.Output.success
+			)
+			.render { rendering in
+				XCTAssertEqual("olleh", rendering)
+			}.assert(action: ParentWorkflow.Action.childSuccess)
+	}
 
-    func test_childWorkflowOutput() {
-        // Test that a child emitting an output is handled as an action by the parent
-        ParentWorkflow(initialText: "hello")
-            .renderTester()
-            .expectWorkflow(
-                type: ChildWorkflow.self,
-                producingRendering: "olleh",
-                producingOutput: .failure
-            )
-            .render { rendering in
-                XCTAssertEqual("olleh", rendering)
-            }
-            .assertNoOutput()
-            .verifyState { state in
-                XCTAssertEqual("Failed", state.text)
-            }
-    }
+	func test_childWorkflowOutput() {
+		// Test that a child emitting an output is handled as an action by the parent
+		ParentWorkflow(initialText: "hello")
+			.renderTester()
+			.expectWorkflow(
+				type: ChildWorkflow.self,
+				producingRendering: "olleh",
+				producingOutput: .failure
+			)
+			.render { rendering in
+				XCTAssertEqual("olleh", rendering)
+			}
+			.assertNoOutput()
+			.verifyState { state in
+				XCTAssertEqual("Failed", state.text)
+			}
+	}
 }
 
 private struct TestWorkflow: Workflow {
-    /// Input
-    var initialText: String
+	/// Input
+	var initialText: String
 
-    /// Output
-    enum Output: Equatable {
-        case first
-    }
+	/// Output
+	enum Output: Equatable {
+		case first
+	}
 
-    struct State: Equatable {
-        var text: String
-        var substate: Substate
-        enum Substate: Equatable {
-            case idle
-            case waiting
-        }
-    }
+	struct State: Equatable {
+		var text: String
+		var substate: Substate
+		enum Substate: Equatable {
+			case idle
+			case waiting
+		}
+	}
 
-    func makeInitialState() -> State {
-        State(text: initialText, substate: .idle)
-    }
+	func makeInitialState() -> State {
+		State(text: initialText, substate: .idle)
+	}
 
-    func render(state: State, context: RenderContext<TestWorkflow>) -> TestScreen {
-        let sink = context.makeSink(of: Action.self)
+	func render(state: State, context: RenderContext<TestWorkflow>) -> TestScreen {
+		let sink = context.makeSink(of: Action.self)
 
-        switch state.substate {
-        case .idle:
-            break
-        case .waiting:
-            break
-        }
+		switch state.substate {
+		case .idle:
+			break
+		case .waiting:
+			break
+		}
 
-        return TestScreen(
-            text: state.text,
-            tapped: {
-                sink.send(.tapped)
-            }
-        )
-    }
+		return TestScreen(
+			text: state.text,
+			tapped: {
+				sink.send(.tapped)
+			}
+		)
+	}
 }
 
 extension TestWorkflow {
-    enum Action: WorkflowAction, Equatable {
-        typealias WorkflowType = TestWorkflow
+	enum Action: WorkflowAction, Equatable {
+		typealias WorkflowType = TestWorkflow
 
-        case tapped
-        case asyncSuccess
+		case tapped
+		case asyncSuccess
 
-        func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
-            switch self {
-            case .tapped:
-                state.substate = .waiting
+		func apply(toState state: inout TestWorkflow.State) -> TestWorkflow.Output? {
+			switch self {
+			case .tapped:
+				state.substate = .waiting
 
-            case .asyncSuccess:
-                state.substate = .idle
-            }
-            return nil
-        }
-    }
+			case .asyncSuccess:
+				state.substate = .idle
+			}
+			return nil
+		}
+	}
 }
 
 private struct OutputWorkflow: Workflow {
-    enum Output {
-        case success
-        case failure
-    }
+	enum Output {
+		case success
+		case failure
+	}
 
-    struct State {}
+	struct State {}
 
-    func makeInitialState() -> OutputWorkflow.State {
-        State()
-    }
+	func makeInitialState() -> OutputWorkflow.State {
+		State()
+	}
 
-    enum Action: WorkflowAction {
-        typealias WorkflowType = OutputWorkflow
+	enum Action: WorkflowAction {
+		typealias WorkflowType = OutputWorkflow
 
-        case emit
+		case emit
 
-        func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
-            switch self {
-            case .emit:
-                return .success
-            }
-        }
-    }
+		func apply(toState state: inout OutputWorkflow.State) -> OutputWorkflow.Output? {
+			switch self {
+			case .emit:
+				return .success
+			}
+		}
+	}
 
-    typealias Rendering = TestScreen
+	typealias Rendering = TestScreen
 
-    func render(state: State, context: RenderContext<OutputWorkflow>) -> TestScreen {
-        let sink = context.makeSink(of: Action.self)
+	func render(state: State, context: RenderContext<OutputWorkflow>) -> TestScreen {
+		let sink = context.makeSink(of: Action.self)
 
-        return TestScreen(text: "value", tapped: {
-            sink.send(.emit)
-        })
-    }
+		return TestScreen(text: "value", tapped: {
+			sink.send(.emit)
+		})
+	}
 }
 
 private struct OutputIgnoringWorkflow: Workflow {
-    typealias State = Void
-    typealias Rendering = ChildWorkflow.Rendering
+	typealias State = Void
+	typealias Rendering = ChildWorkflow.Rendering
 
-    var text: String
+	var text: String
 
-    func render(state: Void, context: RenderContext<OutputIgnoringWorkflow>) -> Rendering {
-        ChildWorkflow(text: text).ignoringOutput().rendered(in: context)
-    }
+	func render(state: Void, context: RenderContext<OutputIgnoringWorkflow>) -> Rendering {
+		ChildWorkflow(text: text).ignoringOutput().rendered(in: context)
+	}
 }
 
 private struct MockChildWorkflow: Workflow {
-    typealias State = Void
-    typealias Rendering = String
+	typealias State = Void
+	typealias Rendering = String
 
-    func render(state: Void, context: RenderContext<MockChildWorkflow>) -> String {
-        XCTFail("should never be rendered")
-        return ""
-    }
+	func render(state: Void, context: RenderContext<MockChildWorkflow>) -> String {
+		XCTFail("should never be rendered")
+		return ""
+	}
 }
 
 private struct OpaqueChildWorkflow: Workflow {
-    typealias State = Void
-    typealias Rendering = String
+	typealias State = Void
+	typealias Rendering = String
 
-    var childProvider: () -> AnyWorkflow<String, Never>
+	var childProvider: () -> AnyWorkflow<String, Never>
 
-    func render(state: Void, context: RenderContext<Self>) -> Rendering {
-        childProvider()
-            .rendered(in: context)
-    }
+	func render(state: Void, context: RenderContext<Self>) -> Rendering {
+		childProvider()
+			.rendered(in: context)
+	}
 }
 
 private struct OpaqueChildOutputIgnoringWorkflow: Workflow {
-    typealias State = Void
-    typealias Rendering = String
+	typealias State = Void
+	typealias Rendering = String
 
-    var childProvider: () -> AnyWorkflow<String, OutputWorkflow.Output>
+	var childProvider: () -> AnyWorkflow<String, OutputWorkflow.Output>
 
-    func render(state: Void, context: RenderContext<Self>) -> Rendering {
-        childProvider()
-            .ignoringOutput()
-            .rendered(in: context)
-    }
+	func render(state: Void, context: RenderContext<Self>) -> Rendering {
+		childProvider()
+			.ignoringOutput()
+			.rendered(in: context)
+	}
 }
 
 private struct TestSideEffectKey: Hashable {
-    let key: String = "Test Side Effect"
+	let key: String = "Test Side Effect"
 }
 
 private struct SideEffectWorkflow: Workflow {
-    enum State: Equatable {
-        case idle
-        case success
-    }
+	enum State: Equatable {
+		case idle
+		case success
+	}
 
-    enum Action: WorkflowAction {
-        case testAction
+	enum Action: WorkflowAction {
+		case testAction
 
-        typealias WorkflowType = SideEffectWorkflow
+		typealias WorkflowType = SideEffectWorkflow
 
-        func apply(toState state: inout SideEffectWorkflow.State) -> SideEffectWorkflow.Output? {
-            switch self {
-            case .testAction:
-                state = .success
-            }
-            return nil
-        }
-    }
+		func apply(toState state: inout SideEffectWorkflow.State) -> SideEffectWorkflow.Output? {
+			switch self {
+			case .testAction:
+				state = .success
+			}
+			return nil
+		}
+	}
 
-    typealias Rendering = TestScreen
+	typealias Rendering = TestScreen
 
-    func render(state: State, context: RenderContext<SideEffectWorkflow>) -> TestScreen {
-        context.runSideEffect(key: TestSideEffectKey()) { _ in }
+	func render(state: State, context: RenderContext<SideEffectWorkflow>) -> TestScreen {
+		context.runSideEffect(key: TestSideEffectKey()) { _ in }
 
-        return TestScreen(text: "value", tapped: {})
-    }
+		return TestScreen(text: "value", tapped: {})
+	}
 
-    func makeInitialState() -> State {
-        .idle
-    }
+	func makeInitialState() -> State {
+		.idle
+	}
 }
 
 private struct TestScreen {
-    var text: String?
-    var tapped: () -> Void
+	var text: String?
+	var tapped: () -> Void
 }
 
 private struct ParentWorkflow: Workflow {
-    typealias Output = Never
+	typealias Output = Never
 
-    var initialText: String
+	var initialText: String
 
-    struct State: Equatable {
-        var text: String
-    }
+	struct State: Equatable {
+		var text: String
+	}
 
-    func makeInitialState() -> ParentWorkflow.State {
-        State(text: initialText)
-    }
+	func makeInitialState() -> ParentWorkflow.State {
+		State(text: initialText)
+	}
 
-    enum Action: WorkflowAction {
-        typealias WorkflowType = ParentWorkflow
+	enum Action: WorkflowAction {
+		typealias WorkflowType = ParentWorkflow
 
-        case childSuccess
-        case childFailure
+		case childSuccess
+		case childFailure
 
-        func apply(toState state: inout ParentWorkflow.State) -> Never? {
-            switch self {
-            case .childSuccess:
-                state.text = String(state.text.reversed())
+		func apply(toState state: inout ParentWorkflow.State) -> Never? {
+			switch self {
+			case .childSuccess:
+				state.text = String(state.text.reversed())
 
-            case .childFailure:
-                state.text = "Failed"
-            }
+			case .childFailure:
+				state.text = "Failed"
+			}
 
-            return nil
-        }
-    }
+			return nil
+		}
+	}
 
-    func render(state: ParentWorkflow.State, context: RenderContext<ParentWorkflow>) -> String {
-        ChildWorkflow(text: state.text)
-            .mapOutput { output -> Action in
-                switch output {
-                case .success:
-                    return .childSuccess
-                case .failure:
-                    return .childFailure
-                }
-            }
-            .rendered(in: context)
-    }
+	func render(state: ParentWorkflow.State, context: RenderContext<ParentWorkflow>) -> String {
+		ChildWorkflow(text: state.text)
+			.mapOutput { output -> Action in
+				switch output {
+				case .success:
+					return .childSuccess
+				case .failure:
+					return .childFailure
+				}
+			}
+			.rendered(in: context)
+	}
 }
 
 private struct ChildWorkflow: Workflow {
-    enum Output: Equatable {
-        case success
-        case failure
-    }
+	enum Output: Equatable {
+		case success
+		case failure
+	}
 
-    var text: String
+	var text: String
 
-    struct State {}
+	struct State {}
 
-    func makeInitialState() -> ChildWorkflow.State {
-        State()
-    }
+	func makeInitialState() -> ChildWorkflow.State {
+		State()
+	}
 
-    func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
-        String(text.reversed())
-    }
+	func render(state: ChildWorkflow.State, context: RenderContext<ChildWorkflow>) -> String {
+		String(text.reversed())
+	}
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +38,7 @@
 /// }
 /// ```
 public protocol ViewEnvironmentKey {
-    associatedtype Value
+	associatedtype Value
 
-    static var defaultValue: Value { get }
+	static var defaultValue: Value { get }
 }
