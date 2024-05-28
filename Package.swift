@@ -12,8 +12,6 @@ let package = Package(
 		.watchOS(.v6)
     ],
     products: [
-        // MARK: Workflow
-
         .library(
             name: "Workflow",
             targets: ["Workflow"]
@@ -22,32 +20,21 @@ let package = Package(
             name: "WorkflowTesting",
             targets: ["WorkflowTesting"]
         ),
-
-        // MARK: WorkflowUI
-
-        .library(
+		.library(
             name: "WorkflowUI",
             targets: ["WorkflowUI"]
         ),
-
-        // MARK: WorkflowReactiveSwift
-
-        .library(
+		.library(
             name: "WorkflowReactiveSwift",
             targets: ["WorkflowReactiveSwift"]
         ),
-
-        // MARK: ViewEnvironment
-
-        .library(
+		.library(
             name: "ViewEnvironment",
             targets: ["ViewEnvironment"]
         ),
     ],
     dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1")],
     targets: [
-        // MARK: Workflow
-
         .target(
             name: "Workflow",
             dependencies: ["ReactiveSwift"],
@@ -68,9 +55,6 @@ let package = Package(
             dependencies: ["WorkflowTesting"],
             path: "WorkflowTesting/Tests"
         ),
-
-        // MARK: WorkflowUI
-
         .target(
             name: "WorkflowUI",
             dependencies: ["Workflow", "ViewEnvironment"],
