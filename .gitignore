@@ -1,31 +1,8 @@
-# macOS
 .DS_Store
-
-# Ruby Bundler
-.bundle/
-
-# cocoapods-generate
-gen/
-
-# Swift Package Manager
-.build/
-Package.resolved
-.swiftpm/
-
-# CocoaPods
-Pods/
-gen/
-
-# Xcode
+/.build
+/.swiftpm
+/Packages
+/*.xcodeproj
+/*.xcworkspacedata
 xcuserdata/
-
-# Sample workspace
-SampleApp.xcworkspace
-
-# ios-snapshot-test-case Failure Diffs
-FailureDiffs/
-
-Samples/**/*Info.plist
-!Samples/Tutorial/AppHost/Configuration/Info.plist
-!Samples/Tutorial/AppHost/TutorialTests/Info.plist
-!Samples/AsyncWorker/AsyncWorker/Info.plist
+DerivedData/
