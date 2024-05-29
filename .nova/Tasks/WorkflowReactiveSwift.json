@@ -1,0 +1,8 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "#!\/bin\/sh\nxcodebuild -quiet -scheme WorkflowReactiveSwift -destination generic\/platform=iOS"
+    }
+  }
+}
