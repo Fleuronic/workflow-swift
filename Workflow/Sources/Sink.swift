@@ -25,11 +25,13 @@ public struct Sink<Value> {
 	public init(_ onValue: @escaping (Value) -> Void) {
 		self.onValue = onValue
 	}
+}
 
+public extension Sink {
 	/// Sends a new event into the sink.
 	///
 	/// - Parameter event: The value to send into the sink.
-	public func send(_ value: Value) {
+	func send(_ value: Value) {
 		onValue(value)
 	}
 
@@ -53,9 +55,7 @@ public struct Sink<Value> {
 	/// *input* types of its API.
 	///
 	/// - Parameter transform: An escaping closure that transforms `T` into `Event`.
-	public func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
-		return Sink<NewValue> { value in
-			self.send(transform(value))
-		}
+	func contraMap<NewValue>(_ transform: @escaping (NewValue) -> Value) -> Sink<NewValue> {
+		.init { value in self.send(transform(value)) }
 	}
 }

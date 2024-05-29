@@ -16,8 +16,12 @@
  */
 
 import ReactiveSwift
-import Workflow
+import struct Workflow.AnyWorkflow
 import class Workflow.Lifetime
+import class Workflow.RenderContext
+import protocol Workflow.Workflow
+import protocol Workflow.WorkflowAction
+import protocol Workflow.AnyWorkflowConvertible
 
 /// Convenience to use `SignalProducer` as a `Workflow`
 ///
@@ -39,48 +43,55 @@ import class Workflow.Lifetime
 /// ```
 extension SignalProducer: AnyWorkflowConvertible where Error == Never {
 	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-		return SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
+		SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
 	}
 }
 
-struct SignalProducerWorkflow<Value>: Workflow {
+// MARK: -
+struct SignalProducerWorkflow<Value> {
+	let signalProducer: SignalProducer<Value, Never>	
+}
+
+// MARK: -
+extension SignalProducerWorkflow: Workflow {
 	public typealias Output = Value
 	public typealias State = Void
 	public typealias Rendering = Void
 
-	struct SignalProducerWorkflowAction: WorkflowAction {
-		typealias WorkflowType = SignalProducerWorkflow
-		let output: Value
-
-		func apply(toState state: inout Void) -> Value? {
-			output
-		}
-	}
-
-	var signalProducer: SignalProducer<Value, Never>
-
-	public init(signalProducer: SignalProducer<Value, Never>) {
-		self.signalProducer = signalProducer
-	}
-
-	public func render(state: State, context: RenderContext<SignalProducerWorkflow>) -> Rendering {
-		let sink = context.makeSink(of: SignalProducerWorkflowAction.self)
+	public func render(
+		state: State, 
+		context: RenderContext<Self>
+	) -> Rendering {
+		let sink = context.makeSink(of: Action.self)
 		context.runSideEffect(key: "") { [signalProducer] lifetime in
 			signalProducer
 				.take(during: lifetime.reactiveLifetime)
-				.map { SignalProducerWorkflowAction(output: $0) }
+				.map(Action.init)
 				.observe(on: QueueScheduler.main)
 				.startWithValues(sink.send)
 		}
 	}
 }
 
+// MARK: -
+extension SignalProducerWorkflow {
+	struct Action {
+		let output: Value
+	}
+}
+
+// MARK: -
+extension SignalProducerWorkflow.Action: WorkflowAction {
+	typealias WorkflowType = SignalProducerWorkflow
+
+	func apply(toState state: inout Void) -> Value? { output }
+}
+
+// MARK: -
 private extension Lifetime {
 	var reactiveLifetime: ReactiveSwift.Lifetime {
 		let (lifetime, token) = ReactiveSwift.Lifetime.make()
-		onEnded {
-			token.dispose()
-		}
+		onEnded { token.dispose() }
 		return lifetime
 	}
 }

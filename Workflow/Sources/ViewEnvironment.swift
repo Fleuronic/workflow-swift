@@ -43,17 +43,8 @@ public struct ViewEnvironment {
 	/// environment value. See documentation for ViewEnvironmentKey for a
 	/// usage example.
 	public subscript<Key>(key: Key.Type) -> Key.Value where Key: ViewEnvironmentKey {
-		get {
-			if let value = storage[ObjectIdentifier(key)] as? Key.Value {
-				return value
-			} else {
-				return Key.defaultValue
-			}
-		}
-
-		set {
-			storage[ObjectIdentifier(key)] = newValue
-		}
+		get { storage[ObjectIdentifier(key)] as? Key.Value ?? Key.defaultValue }
+		set { storage[ObjectIdentifier(key)] = newValue }
 	}
 
 	/// Returns a new ViewEnvironment with the given value set for the given

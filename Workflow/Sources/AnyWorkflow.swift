@@ -31,18 +31,18 @@ public struct AnyWorkflow<Rendering, Output> {
 		if let workflow = workflow as? AnyWorkflow<Rendering, Output> {
 			self = workflow
 		} else {
-			self.init(storage: Storage<T>(
-				workflow: workflow,
-				renderingTransform: { $0 },
-				outputTransform: { $0 }
-			))
+			self.init(
+				storage: Storage<T>(
+					workflow: workflow,
+					renderingTransform: { $0 },
+					outputTransform: { $0 }
+				)
+			)
 		}
 	}
 
 	/// The underlying workflow's implementation type.
-	public var workflowType: Any.Type {
-		return storage.workflowType
-	}
+	public var workflowType: Any.Type { storage.workflowType }
 }
 
 extension AnyWorkflow: Workflow {
@@ -50,15 +50,16 @@ extension AnyWorkflow: Workflow {
 	public typealias State = Void
 	public typealias Rendering = Rendering
 
-	public func render(state: Void, context: RenderContext<AnyWorkflow<Rendering, Output>>) -> Rendering {
+	public func render(
+		state: Void, 
+		context: RenderContext<AnyWorkflow<Rendering, Output>>
+	) -> Rendering {
 		storage.render(context: context, key: "") {
 			AnyWorkflowAction(sendingOutput: $0)
 		}
 	}
 
-	public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> {
-		return self
-	}
+	public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> { self }
 }
 
 extension AnyWorkflow {
@@ -92,7 +93,9 @@ extension AnyWorkflow {
 	/// That type information *is* present in our storage object, however, so we
 	/// pass the context down to that storage object which will ultimately call
 	/// through to `context.render(workflow:key:reducer:)`.
-	internal func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+	internal func render<Parent, Action>(
+		context: RenderContext<Parent>, 
+		key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
 		return storage.render(context: context, key: key, outputMap: outputMap)
 	}
 }
@@ -104,7 +107,11 @@ extension AnyWorkflow {
 	fileprivate class AnyStorage {
 		var base: Any { fatalError() }
 
-		func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+		func render<Parent, Action>(
+			context: RenderContext<Parent>, 
+			key: String, 
+			outputMap: @escaping (Output) -> Action
+		) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
 			fatalError()
 		}
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2022 Square Inc.
+ * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +16,6 @@
  */
 
 import Foundation
-
-extension RenderContext {
-	/// Creates `StateMutationSink`.
-	///
-	/// To create a sink:
-	/// ```
-	/// let stateMutationSink = context.makeStateMutationSink()
-	/// ```
-	///
-	/// To mutate `State` on an event:
-	/// ```
-	/// stateMutationSink.send(\State.value, value: 10)
-	/// ```
-	public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
-		let sink = makeSink(of: AnyWorkflowAction<WorkflowType>.self)
-		return StateMutationSink(sink)
-	}
-}
 
 /// StateMutationSink provides a `Sink` that helps mutate `State` using it's `KeyPath`.
 public struct StateMutationSink<WorkflowType: Workflow> {
@@ -62,5 +45,22 @@ public struct StateMutationSink<WorkflowType: Workflow> {
 
 	init(_ sink: Sink<AnyWorkflowAction<WorkflowType>>) {
 		self.sink = sink
+	}
+}
+
+extension RenderContext {
+	/// Creates `StateMutationSink`.
+	///
+	/// To create a sink:
+	/// ```
+	/// let stateMutationSink = context.makeStateMutationSink()
+	/// ```
+	///
+	/// To mutate `State` on an event:
+	/// ```
+	/// stateMutationSink.send(\State.value, value: 10)
+	/// ```
+	public func makeStateMutationSink() -> StateMutationSink<WorkflowType> {
+		.init(makeSink(of: AnyWorkflowAction<WorkflowType>.self))
 	}
 }

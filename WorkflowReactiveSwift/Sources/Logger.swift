@@ -17,31 +17,31 @@
 
 import os.signpost
 
-// Namespace for Worker logging
+/// Namespace for Worker logging
 public enum WorkerLogging {}
 
-extension WorkerLogging {
-	public static var enabled: Bool {
+// MARK: -
+public extension WorkerLogging {
+	static var enabled: Bool {
 		get { OSLog.active === OSLog.worker }
 		set { OSLog.active = newValue ? .worker : .disabled }
 	}
 }
 
-private extension OSLog {
-	static let worker = OSLog(subsystem: "com.squareup.WorkflowReactiveSwift", category: "Worker")
-
-	static var active: OSLog = .disabled
-}
-
 // MARK: -
-
 /// Logs Worker events to OSLog
 final class WorkerLogger<WorkerType: Worker> {
 	init() {}
+}
 
-	var signpostID: OSSignpostID { OSSignpostID(log: .active, object: self) }
-
-	// MARK: - Workers
+// MARK: -
+extension WorkerLogger {
+	var signpostID: OSSignpostID { 
+		.init(
+			log: .active, 
+			object: self
+		) 
+	}
 
 	func logStarted() {
 		os_signpost(
@@ -55,7 +55,13 @@ final class WorkerLogger<WorkerType: Worker> {
 	}
 
 	func logFinished(status: StaticString) {
-		os_signpost(.end, log: .active, name: "Running", signpostID: signpostID, status)
+		os_signpost(
+			.end, 
+			log: .active, 
+			name: "Running", 
+			signpostID: signpostID, 
+			status
+		)
 	}
 
 	func logOutput() {
@@ -68,4 +74,14 @@ final class WorkerLogger<WorkerType: Worker> {
 			String(describing: WorkerType.self)
 		)
 	}
+}
+
+// MARK: -
+private extension OSLog {
+	static let worker = OSLog(
+		subsystem: "com.squareup.WorkflowReactiveSwift", 
+		category: "Worker"
+	)
+
+	static var active: OSLog = .disabled
 }

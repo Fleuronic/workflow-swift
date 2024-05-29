@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
-import Workflow
+import struct Workflow.AnyWorkflow
+import class ReactiveSwift.Signal
+import protocol Workflow.AnyWorkflowConvertible
 
 /// Convenience to use `Signal` as a `Workflow`
 ///
@@ -38,6 +39,6 @@ import Workflow
 /// ```
 extension Signal: AnyWorkflowConvertible where Error == Never {
 	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
-		return SignalProducerWorkflow(signalProducer: SignalProducer(self)).asAnyWorkflow()
+		SignalProducerWorkflow(signalProducer: .init(self)).asAnyWorkflow()
 	}
 }

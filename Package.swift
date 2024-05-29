@@ -29,11 +29,7 @@ let package = Package(
 		.library(
 			name: "WorkflowReactiveSwiftTesting",
 			targets: ["WorkflowReactiveSwift"]
-		),
-		.library(
-			name: "ViewEnvironment",
-			targets: ["ViewEnvironment"]
-		),
+		)
 	],
 	dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1")],
 	targets: [
@@ -49,7 +45,7 @@ let package = Package(
 		),
 		.target(
 			name: "WorkflowUI",
-			dependencies: ["Workflow", "ViewEnvironment"],
+			dependencies: ["Workflow"],
 			path: "WorkflowUI/Sources"
 		),
 		.testTarget(
@@ -86,10 +82,6 @@ let package = Package(
 			name: "WorkflowReactiveSwiftTestingTests",
 			dependencies: ["WorkflowReactiveSwiftTesting"],
 			path: "WorkflowReactiveSwift/TestingTests"
-		),
-		.target(
-			name: "ViewEnvironment",
-			path: "ViewEnvironment/Sources"
 		)
 	]
 )

@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-import Foundation
-import ReactiveSwift
-import Workflow
+import struct Foundation.UUID
+import struct ReactiveSwift.SignalProducer
+import struct Workflow.AnyWorkflow
+import struct Workflow.AnyWorkflowAction
+import class Workflow.RenderContext
+import protocol Workflow.AnyWorkflowConvertible
+import protocol Workflow.Workflow
 
 /// Workers define a unit of asynchronous work.
 ///
@@ -40,30 +44,43 @@ public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
 	func isEquivalent(to otherWorker: Self) -> Bool
 }
 
-extension Worker {
-	public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+// MARK: -
+public extension Worker {
+	func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
 		WorkerWorkflow(worker: self).asAnyWorkflow()
 	}
 }
 
-struct WorkerWorkflow<WorkerType: Worker>: Workflow {
-	let worker: WorkerType
+// MARK: -
+extension Worker where Self: Equatable {
+	public func isEquivalent(to otherWorker: Self) -> Bool {
+		self == otherWorker
+	}
+}
 
+// MARK: -
+struct WorkerWorkflow<WorkerType: Worker> {
+	let worker: WorkerType
+}
+
+// MARK: -
+extension WorkerWorkflow: Workflow {
 	typealias Output = WorkerType.Output
 	typealias Rendering = Void
 	typealias State = UUID
 
-	func makeInitialState() -> State {
-		UUID()
-	}
+	func makeInitialState() -> State { UUID() }
 
 	func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
 		if !worker.isEquivalent(to: previousWorkflow.worker) {
-			state = UUID()
+			state = .init()
 		}
 	}
 
-	func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
+	func render(
+		state: State, 
+		context: RenderContext<WorkerWorkflow>
+	) -> Rendering {
 		let logger = WorkerLogger<WorkerType>()
 
 		// Start with Void to ensure `worker.run()` is called only once for a given key
@@ -78,6 +95,7 @@ struct WorkerWorkflow<WorkerType: Worker>: Workflow {
 	}
 }
 
+// MARK: -
 private extension WorkerLogger {
 	func log(event: SignalProducer<WorkerType.Output, Never>.ProducedSignal.Event) {
 		switch event {
@@ -91,8 +109,3 @@ private extension WorkerLogger {
 	}
 }
 
-extension Worker where Self: Equatable {
-	public func isEquivalent(to otherWorker: Self) -> Bool {
-		self == otherWorker
-	}
-}

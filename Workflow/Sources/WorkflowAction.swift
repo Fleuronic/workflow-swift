@@ -90,17 +90,13 @@ extension AnyWorkflowAction {
 	///
 	/// - Parameter output: The output event to send when this action is applied.
 	public init(sendingOutput output: WorkflowType.Output) {
-		self = AnyWorkflowAction { state in
-			output
-		}
+		self = AnyWorkflowAction { _ in output }
 	}
 
 	/// Creates a type-erased workflow action that does nothing (it leaves state unchanged and does not emit an output
 	/// event).
 	public static var noAction: AnyWorkflowAction<WorkflowType> {
-		return AnyWorkflowAction { state in
-			nil
-		}
+		AnyWorkflowAction { _ in nil }
 	}
 }
 
