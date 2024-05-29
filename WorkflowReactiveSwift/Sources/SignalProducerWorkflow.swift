@@ -15,13 +15,9 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
-import struct Workflow.AnyWorkflow
+import Workflow
 import class Workflow.Lifetime
-import class Workflow.RenderContext
-import protocol Workflow.Workflow
-import protocol Workflow.WorkflowAction
-import protocol Workflow.AnyWorkflowConvertible
+import ReactiveSwift
 
 /// Convenience to use `SignalProducer` as a `Workflow`
 ///

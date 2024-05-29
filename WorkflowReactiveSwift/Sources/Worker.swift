@@ -15,13 +15,9 @@
  * limitations under the License.
  */
 
-import struct Foundation.UUID
-import struct ReactiveSwift.SignalProducer
-import struct Workflow.AnyWorkflow
-import struct Workflow.AnyWorkflowAction
-import class Workflow.RenderContext
-import protocol Workflow.AnyWorkflowConvertible
-import protocol Workflow.Workflow
+import Foundation
+import Workflow
+import ReactiveSwift
 
 /// Workers define a unit of asynchronous work.
 ///

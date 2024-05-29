@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import struct Workflow.AnyWorkflow
-import class ReactiveSwift.Signal
-import protocol Workflow.AnyWorkflowConvertible
+import Workflow
+import ReactiveSwift
 
 /// Convenience to use `Signal` as a `Workflow`
 ///

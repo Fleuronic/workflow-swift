@@ -18,6 +18,7 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
 
 public final class DescribedViewController: UIViewController {
 	var currentViewController: UIViewController

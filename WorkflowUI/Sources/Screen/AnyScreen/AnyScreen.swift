@@ -17,7 +17,7 @@
 
 #if canImport(UIKit)
 
-import UIKit
+import ViewEnvironment
 
 public struct AnyScreen: Screen {
 	/// The original screen, retained for debugging

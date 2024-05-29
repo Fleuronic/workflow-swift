@@ -18,6 +18,7 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
 
 /// Screens are the building blocks of an interactive application.
 ///

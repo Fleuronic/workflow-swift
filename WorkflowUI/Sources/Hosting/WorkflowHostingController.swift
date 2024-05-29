@@ -20,6 +20,7 @@
 import ReactiveSwift
 import UIKit
 import Workflow
+import ViewEnvironment
 
 /// Drives view controllers from a root Workflow.
 public final class WorkflowHostingController<ScreenType, Output>: UIViewController where ScreenType: Screen {

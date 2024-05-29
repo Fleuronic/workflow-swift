@@ -18,6 +18,7 @@
 #if canImport(UIKit)
 
 import UIKit
+import ViewEnvironment
 
 /// Generic base class that can be subclassed in order to to define a UI implementation that is powered by the
 /// given screen type.
