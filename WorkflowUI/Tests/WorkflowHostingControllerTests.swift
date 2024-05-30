@@ -22,6 +22,7 @@ import XCTest
 import ReactiveSwift
 import Workflow
 import WorkflowReactiveSwift
+import ViewEnvironment
 @testable import WorkflowUI
 
 fileprivate struct TestScreen: Screen {

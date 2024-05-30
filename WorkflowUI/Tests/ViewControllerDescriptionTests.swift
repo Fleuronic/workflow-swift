@@ -21,6 +21,7 @@ import XCTest
 
 import ReactiveSwift
 import Workflow
+import ViewEnvironment
 @testable import WorkflowUI
 
 fileprivate class BlankViewController: UIViewController {}

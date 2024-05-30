@@ -19,6 +19,7 @@
 
 import UIKit
 import XCTest
+import ViewEnvironment
 @testable import WorkflowUI
 
 class AdaptedEnvironmentScreenTests: XCTestCase {
