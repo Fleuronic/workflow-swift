@@ -19,6 +19,10 @@ let package = Package(
 			targets: ["WorkflowUI"]
 		),
 		.library(
+			name: "WorkflowContainers",
+			targets: ["WorkflowContainers"]
+		),
+		.library(
 			name: "WorkflowTesting",
 			targets: ["WorkflowTesting"]
 		),
@@ -28,7 +32,7 @@ let package = Package(
 		),
 		.library(
 			name: "WorkflowReactiveSwiftTesting",
-			targets: ["WorkflowReactiveSwift"]
+			targets: ["WorkflowReactiveSwiftTesting"]
 		),
 		.library(
 			name: "ViewEnvironment",
@@ -56,6 +60,11 @@ let package = Package(
 			name: "WorkflowUITests",
 			dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
 			path: "WorkflowUI/Tests"
+		),
+		.target(
+			name: "WorkflowContainers",
+			dependencies: ["ViewEnvironment"],
+			path: "WorkflowContainers/Sources"
 		),
 		.target(
 			name: "WorkflowTesting",
