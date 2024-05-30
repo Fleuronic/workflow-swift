@@ -53,7 +53,7 @@ let package = Package(
 		),
 		.target(
 			name: "WorkflowUI",
-			dependencies: ["Workflow"],
+			dependencies: ["Workflow", "ViewEnvironment"],
 			path: "WorkflowUI/Sources"
 		),
 		.testTarget(
@@ -63,7 +63,7 @@ let package = Package(
 		),
 		.target(
 			name: "WorkflowContainers",
-			dependencies: ["ViewEnvironment"],
+			dependencies: ["WorkflowUI"],
 			path: "WorkflowContainers/Sources"
 		),
 		.target(
