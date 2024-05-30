@@ -19,9 +19,6 @@
 public struct AnyWorkflow<Rendering, Output> {
 	private let storage: AnyStorage
 
-	/// The underlying erased workflow instance
-	public var base: Any { storage.base }
-
 	private init(storage: AnyStorage) {
 		self.storage = storage
 	}
@@ -40,11 +37,144 @@ public struct AnyWorkflow<Rendering, Output> {
 			)
 		}
 	}
-
-	/// The underlying workflow's implementation type.
-	public var workflowType: Any.Type { storage.workflowType }
 }
 
+// MARK: -
+public extension AnyWorkflow {
+	/// The underlying erased workflow instance
+	var base: Any { storage.base }
+	
+	/// The underlying workflow's implementation type.
+	var workflowType: Any.Type { storage.workflowType }
+	
+	/// Returns a new AnyWorkflow whose `Output` type has been transformed into the given type.
+	///
+	/// - Parameter transform: An escaping closure that maps the original output type into the new output type.
+	///
+	/// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
+	func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+		let storage = storage.mapOutput(transform: transform)
+		return .init(storage: storage)
+	}
+	
+	/// Returns a new `AnyWorkflow` whose `Rendering` type has been transformed into the given type.
+	///
+	/// - Parameter transform: An escaping closure that maps the original rendering type into the new rendering type.
+	///
+	/// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
+	func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
+		let storage = storage.mapRendering(transform: transform)
+		return .init(storage: storage)
+	}
+}
+
+// MARK: -
+extension AnyWorkflow {
+	/// Renders the underlying workflow implementation with the given context.
+	///
+	/// We must invert the model here (by passing the context into the type, instead
+	/// of passing the type into the context) because the type signature of the
+	/// type-erased wrapper does not contain the underlying workflow's
+	/// implementation type.
+	///
+	/// That type information *is* present in our storage object, however, so we
+	/// pass the context down to that storage object which will ultimately call
+	/// through to `context.render(workflow:key:reducer:)`.
+	func render<Parent, Action: WorkflowAction>(
+		context: RenderContext<Parent>, 
+		key: String, 
+		outputMap: @escaping (Output) -> Action
+	) -> Rendering where Action.WorkflowType == Parent {
+		storage.render(
+			context: context, 
+			key: key, 
+			outputMap: outputMap
+		)
+	}
+}
+
+// MARK: -
+private extension AnyWorkflow {
+	/// This is the type erased outer API (referenced by the containing AnyWorkflow).
+	///
+	/// This type is never used directly.
+	class AnyStorage {
+		var base: Any { fatalError() }
+		
+		func render<Parent, Action>(
+			context: RenderContext<Parent>, 
+			key: String, 
+			outputMap: @escaping (Output) -> Action
+		) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+			fatalError()
+		}
+		
+		func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
+			fatalError()
+		}
+		
+		func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
+			fatalError()
+		}
+		
+		var workflowType: Any.Type {
+			fatalError()
+		}
+	}
+	
+	/// Subclass that adds type information about the underlying workflow implementation.
+	///
+	/// This is the only type that is ever actually used by AnyWorkflow as storage.
+	final class Storage<T: Workflow>: AnyStorage {
+		let workflow: T
+		let renderingTransform: (T.Rendering) -> Rendering
+		let outputTransform: (T.Output) -> Output
+	
+		init(
+			workflow: T, 
+			renderingTransform: @escaping (T.Rendering) -> Rendering, 
+			outputTransform: @escaping (T.Output) -> Output
+		) {
+			self.workflow = workflow
+			self.renderingTransform = renderingTransform
+			self.outputTransform = outputTransform
+		}
+		
+		// MARK: AnyStorage
+		override var base: Any { workflow }
+		override var workflowType: Any.Type { T.self }
+		
+		override func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
+			let outputMap: (T.Output) -> Action = { [outputTransform] output in
+				outputMap(outputTransform(output))
+			}
+			let rendering = context.render(workflow: workflow, key: key, outputMap: outputMap)
+			return renderingTransform(rendering)
+		}
+		
+		override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
+			return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
+				workflow: workflow,
+				renderingTransform: renderingTransform,
+				outputTransform: { [outputTransform] in
+					transform(outputTransform($0))
+				}
+			)
+		}
+		
+		override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
+			return AnyWorkflow<NewRendering, Output>.Storage<T>(
+				workflow: workflow,
+				renderingTransform: { [renderingTransform] in
+					transform(renderingTransform($0))
+				},
+				outputTransform: outputTransform
+			)
+		}
+	}
+}
+
+// MARK: -
 extension AnyWorkflow: Workflow {
 	public typealias Output = Output
 	public typealias State = Void
@@ -62,128 +192,13 @@ extension AnyWorkflow: Workflow {
 	public func asAnyWorkflow() -> AnyWorkflow<Rendering, Output> { self }
 }
 
-extension AnyWorkflow {
-	/// Returns a new AnyWorkflow whose `Output` type has been transformed into the given type.
-	///
-	/// - Parameter transform: An escaping closure that maps the original output type into the new output type.
-	///
-	/// - Returns: A type erased workflow with the new output type (the rendering type remains unchanged).
-	public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
-		let storage = self.storage.mapOutput(transform: transform)
-		return AnyWorkflow<Rendering, NewOutput>(storage: storage)
-	}
-
-	/// Returns a new `AnyWorkflow` whose `Rendering` type has been transformed into the given type.
-	///
-	/// - Parameter transform: An escaping closure that maps the original rendering type into the new rendering type.
-	///
-	/// - Returns: A type erased workflow with the new rendering type (the output type remains unchanged).
-	public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
-		let storage = self.storage.mapRendering(transform: transform)
-		return AnyWorkflow<NewRendering, Output>(storage: storage)
-	}
-
-	/// Renders the underlying workflow implementation with the given context.
-	///
-	/// We must invert the model here (by passing the context into the type, instead
-	/// of passing the type into the context) because the type signature of the
-	/// type-erased wrapper does not contain the underlying workflow's
-	/// implementation type.
-	///
-	/// That type information *is* present in our storage object, however, so we
-	/// pass the context down to that storage object which will ultimately call
-	/// through to `context.render(workflow:key:reducer:)`.
-	internal func render<Parent, Action>(
-		context: RenderContext<Parent>, 
-		key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
-		return storage.render(context: context, key: key, outputMap: outputMap)
-	}
-}
-
-extension AnyWorkflow {
-	/// This is the type erased outer API (referenced by the containing AnyWorkflow).
-	///
-	/// This type is never used directly.
-	fileprivate class AnyStorage {
-		var base: Any { fatalError() }
-
-		func render<Parent, Action>(
-			context: RenderContext<Parent>, 
-			key: String, 
-			outputMap: @escaping (Output) -> Action
-		) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
-			fatalError()
-		}
-
-		func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
-			fatalError()
-		}
-
-		func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
-			fatalError()
-		}
-
-		var workflowType: Any.Type {
-			fatalError()
-		}
-	}
-
-	/// Subclass that adds type information about the underlying workflow implementation.
-	///
-	/// This is the only type that is ever actually used by AnyWorkflow as storage.
-	fileprivate final class Storage<T: Workflow>: AnyStorage {
-		let workflow: T
-		let renderingTransform: (T.Rendering) -> Rendering
-		let outputTransform: (T.Output) -> Output
-
-		init(workflow: T, renderingTransform: @escaping (T.Rendering) -> Rendering, outputTransform: @escaping (T.Output) -> Output) {
-			self.workflow = workflow
-			self.renderingTransform = renderingTransform
-			self.outputTransform = outputTransform
-		}
-
-		override var base: Any { workflow }
-
-		override var workflowType: Any.Type {
-			return T.self
-		}
-
-		override func render<Parent, Action>(context: RenderContext<Parent>, key: String, outputMap: @escaping (Output) -> Action) -> Rendering where Action: WorkflowAction, Action.WorkflowType == Parent {
-			let outputMap: (T.Output) -> Action = { [outputTransform] output in
-				outputMap(outputTransform(output))
-			}
-			let rendering = context.render(workflow: workflow, key: key, outputMap: outputMap)
-			return renderingTransform(rendering)
-		}
-
-		override func mapOutput<NewOutput>(transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput>.AnyStorage {
-			return AnyWorkflow<Rendering, NewOutput>.Storage<T>(
-				workflow: workflow,
-				renderingTransform: renderingTransform,
-				outputTransform: { [outputTransform] in
-					transform(outputTransform($0))
-				}
-			)
-		}
-
-		override func mapRendering<NewRendering>(transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output>.AnyStorage {
-			return AnyWorkflow<NewRendering, Output>.Storage<T>(
-				workflow: workflow,
-				renderingTransform: { [renderingTransform] in
-					transform(renderingTransform($0))
-				},
-				outputTransform: outputTransform
-			)
-		}
-	}
-}
-
-extension AnyWorkflowConvertible {
-	public func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
+// MARK: -
+public extension AnyWorkflowConvertible {
+	func mapOutput<NewOutput>(_ transform: @escaping (Output) -> NewOutput) -> AnyWorkflow<Rendering, NewOutput> {
 		return asAnyWorkflow().mapOutput(transform)
 	}
 
-	public func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
+	func mapRendering<NewRendering>(_ transform: @escaping (Rendering) -> NewRendering) -> AnyWorkflow<NewRendering, Output> {
 		return asAnyWorkflow().mapRendering(transform)
 	}
 }
