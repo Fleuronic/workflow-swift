@@ -39,50 +39,63 @@ import ViewEnvironment
 /// ```
 open class ScreenViewController<ScreenType: Screen>: UIViewController {
 	public private(set) final var screen: ScreenType
-
-	public final var screenType: Screen.Type {
-		return ScreenType.self
-	}
-
 	public private(set) final var environment: ViewEnvironment
-
-	public required init(screen: ScreenType, environment: ViewEnvironment) {
+	
+	public required init(
+		screen: ScreenType, 
+		environment: ViewEnvironment
+	) {
 		self.screen = screen
 		self.environment = environment
+		
 		super.init(nibName: nil, bundle: nil)
 	}
+	
+	/// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.
+	open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}
 
+	// MARK: NSCoding
 	@available(*, unavailable)
-	public required init?(coder aDecoder: NSCoder) {
+	public required init(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
+}
 
-	public final func update(screen: ScreenType, environment: ViewEnvironment) {
+// MARK: -
+public extension ScreenViewController {
+	final var screenType: Screen.Type { ScreenType.self }
+
+	final func update(
+		screen: ScreenType, 
+		environment: ViewEnvironment
+	) {
 		let previousScreen = self.screen
 		self.screen = screen
 		let previousEnvironment = self.environment
 		self.environment = environment
+
 		screenDidChange(from: previousScreen, previousEnvironment: previousEnvironment)
 	}
 
-	/// Subclasses should override this method in order to update any relevant UI bits when the screen model changes.
-	open func screenDidChange(from previousScreen: ScreenType, previousEnvironment: ViewEnvironment) {}
-}
-
-extension ScreenViewController {
 	/// Convenience to create a view controller description for the given screen
 	/// value. See the example on the comment for ScreenViewController for
 	/// usage.
-	public final class func description(
-		for screen: ScreenType,
-		environment: ViewEnvironment,
-		performInitialUpdate: Bool = true
-	) -> ViewControllerDescription {
-		ViewControllerDescription(
+	final class func description(for screen: ScreenType, environment: ViewEnvironment, performInitialUpdate: Bool = true) -> ViewControllerDescription {
+		.init(
 			performInitialUpdate: performInitialUpdate,
 			type: self,
-			build: { self.init(screen: screen, environment: environment) },
-			update: { $0.update(screen: screen, environment: environment) }
+			build: { 
+				.init(
+					screen: screen, 
+					environment: environment
+				) 
+			},
+			update: { 
+				$0.update(
+					screen: screen, 
+					environment: environment
+				)
+			}
 		)
 	}
 }

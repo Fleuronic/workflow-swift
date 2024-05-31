@@ -22,9 +22,12 @@ public struct AnyWorkflow<Rendering, Output> {
 	private init(storage: AnyStorage) {
 		self.storage = storage
 	}
+}
 
+// MARK: -
+public extension AnyWorkflow {
 	/// Initializes a new type-erased wrapper for the given workflow.
-	public init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
+	init<T: Workflow>(_ workflow: T) where T.Rendering == Rendering, T.Output == Output {
 		if let workflow = workflow as? AnyWorkflow<Rendering, Output> {
 			self = workflow
 		} else {
@@ -37,10 +40,7 @@ public struct AnyWorkflow<Rendering, Output> {
 			)
 		}
 	}
-}
 
-// MARK: -
-public extension AnyWorkflow {
 	/// The underlying erased workflow instance
 	var base: Any { storage.base }
 	

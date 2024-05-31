@@ -77,19 +77,17 @@ private extension UIAlertController {
 			message: alert.message,
 			preferredStyle: .alert
 		)
-
-		alert.actions
-			.map { action in
-				UIAlertAction(
-					title: action.title,
-					style: .init(action.style),
-					handler: { _ in
-						action.handler()
-						dismissHandler()
-					}
-				)
-			}
-			.forEach(addAction)
+		
+		alert.actions.map { action in
+			UIAlertAction(
+				title: action.title,
+				style: .init(action.style),
+				handler: { _ in
+					action.handler()
+					dismissHandler()
+				}
+			)
+		}.forEach(addAction)
 	}
 }
 

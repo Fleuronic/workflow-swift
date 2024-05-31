@@ -52,6 +52,18 @@ public struct ViewControllerDescription {
 
 	private let build: () -> UIViewController
 	private let update: (UIViewController) -> Void
+}
+
+public extension ViewControllerDescription {
+	/// Describes the `UIViewController` type that backs the `ViewControllerDescription`
+	/// in a way that is `Equatable` and `Hashable`. When implementing view controller
+	/// updating and diffing, you can use this type to identify if the backing view controller
+	/// type changed.
+	struct KindIdentifier {
+		fileprivate let viewControllerType: UIViewController.Type
+	
+		private let checkViewControllerType: (UIViewController) -> Bool
+	}
 
 	/// Constructs a view controller description by providing closures used to
 	/// build and update a specific view controller type.
@@ -68,44 +80,41 @@ public struct ViewControllerDescription {
 	///   - build: Closure that produces a new instance of the view controller
 	///
 	///   - update: Closure that updates the given view controller
-	public init<VC: UIViewController>(
+	init<ViewController: UIViewController>(
 		performInitialUpdate: Bool = true,
-		type: VC.Type = VC.self,
-		build: @escaping () -> VC,
-		update: @escaping (VC) -> Void
+		type: ViewController.Type = ViewController.self,
+		build: @escaping () -> ViewController,
+		update: @escaping (ViewController) -> Void
 	) {
 		self.performInitialUpdate = performInitialUpdate
-
-		self.kind = .init(VC.self)
-
+		self.kind = .init(ViewController.self)
 		self.build = build
-
 		self.update = { untypedViewController in
-			guard let viewController = untypedViewController as? VC else {
-				fatalError("Unable to update \(untypedViewController), expecting a \(VC.self)")
+			guard let viewController = untypedViewController as? ViewController else {
+				fatalError("Unable to update \(untypedViewController), expecting a \(ViewController.self)")
 			}
-
+			
 			update(viewController)
 		}
 	}
 
 	/// Construct and update a new view controller as described by this view controller description.
 	/// The view controller will be updated before it is returned, so it is fully configured and prepared for display.
-	public func buildViewController() -> UIViewController {
+	func buildViewController() -> UIViewController {
 		let viewController = build()
-
+		
 		if performInitialUpdate {
 			// Perform an initial update of the built view controller
 			update(viewController: viewController)
 		}
-
+		
 		return viewController
 	}
 
 	/// If the given view controller is of the correct type to be updated by this view controller description.
 	///
 	/// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
-	public func canUpdate(viewController: UIViewController) -> Bool {
+	func canUpdate(viewController: UIViewController) -> Bool {
 		kind.canUpdate(viewController: viewController)
 	}
 
@@ -117,55 +126,46 @@ public struct ViewControllerDescription {
 	/// ### Note
 	/// You must pass a view controller previously created by a compatible `ViewControllerDescription`
 	/// that passes `canUpdate(viewController:)`. Failure to do so will result in a fatal precondition.
-	public func update(viewController: UIViewController) {
+	func update(viewController: UIViewController) {
 		precondition(
 			canUpdate(viewController: viewController),
 			"""
 			`ViewControllerDescription` was provided a view controller it cannot update: (\(viewController).
-
+			
 			The view controller type (\(type(of: viewController)) is a compatible type to the expected type \(kind.viewControllerType)).
 			"""
 		)
-
+		
 		update(viewController)
 	}
 }
 
-extension ViewControllerDescription {
-	/// Describes the `UIViewController` type that backs the `ViewControllerDescription`
-	/// in a way that is `Equatable` and `Hashable`. When implementing view controller
-	/// updating and diffing, you can use this type to identify if the backing view controller
-	/// type changed.
-	public struct KindIdentifier: Hashable {
-		fileprivate let viewControllerType: UIViewController.Type
+public extension ViewControllerDescription.KindIdentifier {
+	/// Creates a new kind for the given view controller type.
+	init<ViewController: UIViewController>(_ kind: ViewController.Type) {
+		viewControllerType = ViewController.self
+		checkViewControllerType = { $0 is ViewController }
+	}
+}
 
-		private let checkViewControllerType: (UIViewController) -> Bool
+public extension ViewControllerDescription.KindIdentifier {
+	/// If the given view controller is of the correct type to be updated by this view controller description.
+	///
+	/// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
+	func canUpdate(viewController: UIViewController) -> Bool {
+		checkViewControllerType(viewController)
+	}
+}
 
-		/// Creates a new kind for the given view controller type.
-		public init<VC: UIViewController>(_ kind: VC.Type) {
-			self.viewControllerType = VC.self
+extension ViewControllerDescription.KindIdentifier: Hashable {
+	// MARK: Hashable
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(ObjectIdentifier(viewControllerType))
+	}
 
-			self.checkViewControllerType = { $0 is VC }
-		}
-
-		/// If the given view controller is of the correct type to be updated by this view controller description.
-		///
-		/// If your view controller type can change between updates, call this method before invoking `update(viewController:)`.
-		public func canUpdate(viewController: UIViewController) -> Bool {
-			return checkViewControllerType(viewController)
-		}
-
-		// MARK: Hashable
-
-		public func hash(into hasher: inout Hasher) {
-			hasher.combine(ObjectIdentifier(viewControllerType))
-		}
-
-		// MARK: Equatable
-
-		public static func == (lhs: Self, rhs: Self) -> Bool {
-			lhs.viewControllerType == rhs.viewControllerType
-		}
+	// MARK: Equatable
+	public static func ==(lhs: Self, rhs: Self) -> Bool {
+		lhs.viewControllerType == rhs.viewControllerType
 	}
 }
 

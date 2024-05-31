@@ -17,35 +17,18 @@
 
 import ReactiveSwift
 
-/// Defines a type that receives debug information about a running workflow hierarchy.
-public protocol WorkflowDebugger {
-	/// Called once when the workflow hierarchy initializes.
-	///
-	/// - Parameter snapshot: Debug information about the workflow hierarchy.
-	func didEnterInitialState(snapshot: WorkflowHierarchyDebugSnapshot)
-
-	/// Called when an update occurs anywhere within the workflow hierarchy.
-	///
-	/// - Parameter snapshot: Debug information about the workflow hierarchy *after* the update.
-	/// - Parameter updateInfo: Information about the update.
-	func didUpdate(snapshot: WorkflowHierarchyDebugSnapshot, updateInfo: WorkflowUpdateDebugInfo)
-}
-
 /// Manages an active workflow hierarchy.
 public final class WorkflowHost<WorkflowType: Workflow> {
-	private let debugger: WorkflowDebugger?
-
-	private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
-
-	// @testable
-	internal let rootNode: WorkflowNode<WorkflowType>
-
-	private let mutableRendering: MutableProperty<WorkflowType.Rendering>
-
 	/// Represents the `Rendering` produced by the root workflow in the hierarchy. New `Rendering` values are produced
 	/// as state transitions occur within the hierarchy.
 	public let rendering: Property<WorkflowType.Rendering>
 
+	let rootNode: WorkflowNode<WorkflowType>
+
+	private let (outputEvent, outputEventObserver) = Signal<WorkflowType.Output, Never>.pipe()
+	private let mutableRendering: MutableProperty<WorkflowType.Rendering>
+	private let debugger: WorkflowDebugger?
+	
 	/// Initializes a new host with the given workflow at the root.
 	///
 	/// - Parameter workflow: The root workflow in the hierarchy
@@ -58,33 +41,38 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 		debugger: WorkflowDebugger? = nil
 	) {
 		self.debugger = debugger
-
+		
 		let observer = WorkflowObservation
 			.sharedObserversInterceptor
 			.workflowObservers(for: observers)
 			.chained()
-
+		
 		self.rootNode = WorkflowNode(
 			workflow: workflow,
 			parentSession: nil,
 			observer: observer
 		)
-
+		
 		self.mutableRendering = MutableProperty(rootNode.render(isRootNode: true))
 		self.rendering = Property(mutableRendering)
+		
 		rootNode.enableEvents()
-
 		debugger?.didEnterInitialState(snapshot: rootNode.makeDebugSnapshot())
-
 		rootNode.onOutput = { [weak self] output in
 			self?.handle(output: output)
 		}
 	}
+}
+
+// MARK: -
+public extension WorkflowHost {
+	/// A signal containing output events emitted by the root workflow in the hierarchy.
+	var output: Signal<WorkflowType.Output, Never> { outputEvent }
 
 	/// Update the input for the workflow. Will cause a render pass.
-	public func update(workflow: WorkflowType) {
+	func update(workflow: WorkflowType) {
 		rootNode.update(workflow: workflow)
-
+		
 		// Treat the update as an "output" from the workflow originating from an external event to force a render pass.
 		let output = WorkflowNode<WorkflowType>.Output(
 			outputEvent: nil,
@@ -95,24 +83,35 @@ public final class WorkflowHost<WorkflowType: Workflow> {
 		)
 		handle(output: output)
 	}
+}
 
-	private func handle(output: WorkflowNode<WorkflowType>.Output) {
+private extension WorkflowHost {
+	func handle(output: WorkflowNode<WorkflowType>.Output) {
 		mutableRendering.value = rootNode.render(isRootNode: true)
-
+		
 		if let outputEvent = output.outputEvent {
 			outputEventObserver.send(value: outputEvent)
 		}
-
+		
 		debugger?.didUpdate(
 			snapshot: rootNode.makeDebugSnapshot(),
 			updateInfo: output.debugInfo
 		)
-
+		
 		rootNode.enableEvents()
 	}
+}
 
-	/// A signal containing output events emitted by the root workflow in the hierarchy.
-	public var output: Signal<WorkflowType.Output, Never> {
-		return outputEvent
-	}
+/// Defines a type that receives debug information about a running workflow hierarchy.
+public protocol WorkflowDebugger {
+	/// Called once when the workflow hierarchy initializes.
+	///
+	/// - Parameter snapshot: Debug information about the workflow hierarchy.
+	func didEnterInitialState(snapshot: WorkflowHierarchyDebugSnapshot)
+
+	/// Called when an update occurs anywhere within the workflow hierarchy.
+	///
+	/// - Parameter snapshot: Debug information about the workflow hierarchy *after* the update.
+	/// - Parameter updateInfo: Information about the update.
+	func didUpdate(snapshot: WorkflowHierarchyDebugSnapshot, updateInfo: WorkflowUpdateDebugInfo)
 }

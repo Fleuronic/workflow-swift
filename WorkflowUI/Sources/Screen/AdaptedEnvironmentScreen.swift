@@ -32,25 +32,26 @@ import ViewEnvironment
 /// ```
 ///
 public struct AdaptedEnvironmentScreen<Content> {
-	/// The screen wrapped by this screen.
-	public var wrapped: Content
-
 	/// Takes in a mutable `ViewEnvironment` which can be mutated to add or override values.
 	public typealias Adapter = (inout ViewEnvironment) -> Void
 
-	var adapter: Adapter
+	/// The screen wrapped by this screen.
+	public var wrapped: Content
 
+	var adapter: Adapter
+}
+
+// MARK: -
+public extension AdaptedEnvironmentScreen {
 	/// Wraps a `Screen` with an environment that is modified using the given configuration block.
 	///
 	/// - Parameters:
 	///   - wrapping: The screen to be wrapped.
 	///   - adapting: A block that will set environmental values.
-	public init(
-		wrapping wrapped: Content,
-		adapting: @escaping Adapter
-	) {
+	init(wrapping wrapped: Content, adapting: @escaping Adapter) {
 		self.wrapped = wrapped
-		self.adapter = adapting
+		
+		adapter = adapting
 	}
 
 	/// Wraps a `Screen` with an environment that is modified for a single key and value.
@@ -59,35 +60,25 @@ public struct AdaptedEnvironmentScreen<Content> {
 	///   - wrapping: The screen to be wrapped.
 	///   - key: The environment key to modify.
 	///   - value: The new environment value to cascade.
-	public init<Key: ViewEnvironmentKey>(
-		wrapping screen: Content,
-		key: Key.Type,
-		value: Key.Value
-	) {
-		self.init(wrapping: screen, adapting: { $0[key] = value })
+	init<Key: ViewEnvironmentKey>(wrapping screen: Content, key: Key.Type, value: Key.Value) {
+		self.init(wrapping: screen) { $0[key] = value }
 	}
 
 	/// Wraps a `Screen` with an environment that is modified for a single value.
 	///
 	/// - Parameters:
 	///   - wrapping: The screen to be wrapped.
-	///   - keyPath: The keypath of the environment value to modify.
+	///   - keyPath: The key path of the environment value to modify.
 	///   - value: The new environment value to cascade.
-	public init<Value>(
-		wrapping screen: Content,
-		keyPath: WritableKeyPath<ViewEnvironment, Value>,
-		value: Value
-	) {
-		self.init(wrapping: screen, adapting: { $0[keyPath: keyPath] = value })
+	init<Value>(wrapping screen: Content, keyPath: WritableKeyPath<ViewEnvironment, Value>, value: Value) {
+		self.init(wrapping: screen) { $0[keyPath: keyPath] = value }
 	}
 }
 
 extension AdaptedEnvironmentScreen: Screen where Content: Screen {
 	public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
 		var environment = environment
-
 		adapter(&environment)
-
 		return wrapped.viewControllerDescription(environment: environment)
 	}
 }
@@ -98,7 +89,7 @@ extension Screen {
 		key: Key.Type,
 		value: Key.Value
 	) -> AdaptedEnvironmentScreen<Self> {
-		AdaptedEnvironmentScreen(wrapping: self, key: key, value: value)
+		.init(wrapping: self, key: key, value: value)
 	}
 
 	/// Wraps this screen in an `AdaptedEnvironmentScreen` with the given keypath and value.
@@ -110,9 +101,7 @@ extension Screen {
 	}
 
 	/// Wraps this screen in an `AdaptedEnvironmentScreen` with the given configuration block.
-	func adaptedEnvironment(
-		adapting: @escaping (inout ViewEnvironment) -> Void
-	) -> AdaptedEnvironmentScreen<Self> {
+	func adaptedEnvironment(adapting: @escaping (inout ViewEnvironment) -> Void) -> AdaptedEnvironmentScreen<Self> {
 		AdaptedEnvironmentScreen(wrapping: self, adapting: adapting)
 	}
 }

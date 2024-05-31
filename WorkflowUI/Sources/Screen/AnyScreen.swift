@@ -22,25 +22,27 @@ import ViewEnvironment
 public struct AnyScreen: Screen {
 	/// The original screen, retained for debugging
 	public let wrappedScreen: Screen
+}
 
-	public init<T: Screen>(_ screen: T) {
+// MARK: -
+public extension AnyScreen {
+	init<T: Screen>(_ screen: T) {
 		if let anyScreen = screen as? AnyScreen {
 			self = anyScreen
 			return
 		}
-		self.wrappedScreen = screen
+		wrappedScreen = screen
 	}
 
-	public func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
-		return wrappedScreen.viewControllerDescription(environment: environment)
+	func viewControllerDescription(environment: ViewEnvironment) -> ViewControllerDescription {
+		wrappedScreen.viewControllerDescription(environment: environment)
 	}
 }
 
-extension Screen {
+// MARK: -
+public extension Screen {
 	/// Wraps the screen in an AnyScreen
-	public func asAnyScreen() -> AnyScreen {
-		AnyScreen(self)
-	}
+	func asAnyScreen() -> AnyScreen { .init(self) }
 }
 
 #endif
