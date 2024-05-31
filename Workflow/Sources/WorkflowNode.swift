@@ -17,23 +17,23 @@
 
 /// Manages a running workflow.
 final class WorkflowNode<WorkflowType: Workflow> {
-	/// Holds the current state of the workflow
-	private var state: WorkflowType.State
-
-	/// Holds the current workflow.
-	private var workflow: WorkflowType
-
 	/// An optional `WorkflowObserver` instance
 	let observer: WorkflowObserver?
 
-	var onOutput: ((Output) -> Void)?
-
-	/// Manages the children of this workflow, including diffs during/after render passes.
-	private let subtreeManager: SubtreeManager
-
 	/// 'Session' metadata associated with this node
 	let session: WorkflowSession
-
+	
+	var onOutput: ((Output) -> Void)?
+	
+	/// Manages the children of this workflow, including diffs during/after render passes.
+	private let subtreeManager: SubtreeManager
+	
+	/// Holds the current state of the workflow
+	private var state: WorkflowType.State
+	
+	/// Holds the current workflow.
+	private var workflow: WorkflowType
+	
 	init(
 		workflow: WorkflowType,
 		key: String = "",
@@ -48,23 +48,22 @@ final class WorkflowNode<WorkflowType: Workflow> {
 			renderKey: key,
 			parent: parentSession
 		)
+		
 		self.subtreeManager = SubtreeManager(
 			session: session,
 			observer: observer
 		)
-
+		
 		self.observer?.sessionDidBegin(session)
-
 		self.state = workflow.makeInitialState()
-
 		self.observer?.workflowDidMakeInitialState(
 			workflow,
 			initialState: state,
 			session: session
 		)
-
+		
 		WorkflowLogger.logWorkflowStarted(ref: self)
-
+		
 		subtreeManager.onUpdate = { [weak self] output in
 			self?.handle(subtreeOutput: output)
 		}
@@ -74,42 +73,14 @@ final class WorkflowNode<WorkflowType: Workflow> {
 		observer?.sessionDidEnd(session)
 		WorkflowLogger.logWorkflowFinished(ref: self)
 	}
+}
 
-	/// Handles an event produced by the subtree manager
-	private func handle(subtreeOutput: SubtreeManager.Output) {
-		let output: Output
-
-		switch subtreeOutput {
-		case .update(let action, let source):
-			/// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
-			/// allowing the underlying conformance to be applied to the Workflow's State
-			let outputEvent = openAndApply(
-				action,
-				isExternal: source == .external
-			)
-
-			/// Finally, we tell the outside world that our state has changed (including an output event if it exists).
-			output = Output(
-				outputEvent: outputEvent,
-				debugInfo: WorkflowUpdateDebugInfo(
-					workflowType: "\(WorkflowType.self)",
-					kind: .didUpdate(source: source)
-				)
-			)
-
-		case .childDidUpdate(let debugInfo):
-			output = Output(
-				outputEvent: nil,
-				debugInfo: WorkflowUpdateDebugInfo(
-					workflowType: "\(WorkflowType.self)",
-					kind: .childDidUpdate(debugInfo)
-				)
-			)
-		}
-
-		onOutput?(output)
+extension WorkflowNode {
+	struct Output {
+		var outputEvent: WorkflowType.Output?
+		var debugInfo: WorkflowUpdateDebugInfo
 	}
-
+	
 	/// Internal method that forwards the render call through the underlying `subtreeManager`,
 	/// and eventually to the client-specified `Workflow` instance.
 	/// - Parameter isRootNode: whether or not this is the root node of the tree. Note, this
@@ -117,21 +88,20 @@ final class WorkflowNode<WorkflowType: Workflow> {
 	/// - Returns: A `Rendering` of appropriate type
 	func render(isRootNode: Bool = false) -> WorkflowType.Rendering {
 		WorkflowLogger.logWorkflowStartedRendering(ref: self, isRootNode: isRootNode)
-
+		
 		let renderObserverCompletion = observer?.workflowWillRender(
 			workflow,
 			state: state,
 			session: session
 		)
-
+		
 		let rendering: WorkflowType.Rendering
-
+		
 		defer {
 			renderObserverCompletion?(rendering)
-
 			WorkflowLogger.logWorkflowFinishedRendering(ref: self, isRootNode: isRootNode)
 		}
-
+		
 		rendering = subtreeManager.render { context in
 			workflow
 				.render(
@@ -139,7 +109,7 @@ final class WorkflowNode<WorkflowType: Workflow> {
 					context: context
 				)
 		}
-
+		
 		return rendering
 	}
 
@@ -150,10 +120,10 @@ final class WorkflowNode<WorkflowType: Workflow> {
 	/// Updates the workflow.
 	func update(workflow: WorkflowType) {
 		let oldWorkflow = self.workflow
-
+		
 		workflow.workflowDidChange(from: oldWorkflow, state: &state)
 		self.workflow = workflow
-
+		
 		observer?.workflowDidChange(
 			from: oldWorkflow,
 			to: workflow,
@@ -171,14 +141,41 @@ final class WorkflowNode<WorkflowType: Workflow> {
 	}
 }
 
-extension WorkflowNode {
-	struct Output {
-		var outputEvent: WorkflowType.Output?
-		var debugInfo: WorkflowUpdateDebugInfo
-	}
-}
-
 private extension WorkflowNode {
+	/// Handles an event produced by the subtree manager
+	private func handle(subtreeOutput: SubtreeManager.Output) {
+		let output: Output
+		
+		switch subtreeOutput {
+		case .update(let action, let source):
+			/// 'Opens' the existential `any WorkflowAction<WorkflowType>` value
+			/// allowing the underlying conformance to be applied to the Workflow's State
+			let outputEvent = openAndApply(
+				action,
+				isExternal: source == .external
+			)
+			
+			/// Finally, we tell the outside world that our state has changed (including an output event if it exists).
+			output = .init(
+				outputEvent: outputEvent,
+				debugInfo: WorkflowUpdateDebugInfo(
+					workflowType: "\(WorkflowType.self)",
+					kind: .didUpdate(source: source)
+				)
+			)
+		case .childDidUpdate(let debugInfo):
+			output = .init(
+				outputEvent: nil,
+				debugInfo: WorkflowUpdateDebugInfo(
+					workflowType: "\(WorkflowType.self)",
+					kind: .childDidUpdate(debugInfo)
+				)
+			)
+		}
+		
+		onOutput?(output)
+	}
+
 	/// Applies an appropriate `WorkflowAction` to advance the underlying Workflow `State`
 	/// - Parameters:
 	///   - action: The `WorkflowAction` to apply
@@ -189,7 +186,7 @@ private extension WorkflowNode {
 		isExternal: Bool
 	) -> WorkflowType.Output? where A.WorkflowType == WorkflowType {
 		let output: WorkflowType.Output?
-
+		
 		// handle specific observation call if this is the first node
 		// processing this 'action cascade'
 		if isExternal {
@@ -199,7 +196,7 @@ private extension WorkflowNode {
 				session: session
 			)
 		}
-
+		
 		let observerCompletion = observer?.workflowWillApplyAction(
 			action,
 			workflow: workflow,
@@ -207,10 +204,10 @@ private extension WorkflowNode {
 			session: session
 		)
 		defer { observerCompletion?(state, output) }
-
+		
 		/// Apply the action to the current state
 		output = action.apply(toState: &state)
-
+		
 		return output
 	}
 }

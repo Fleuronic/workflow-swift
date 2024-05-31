@@ -24,15 +24,11 @@ import Foundation
 public protocol WorkflowObserver {
 	/// Indicates the start of a `WorkflowSession`, which tracks the life of the underlying `WorkflowNode` used to provide renderings for a given `Workflow` type and rendering key.
 	/// - Parameter session: The `WorkflowSession` that began.
-	func sessionDidBegin(
-		_ session: WorkflowSession
-	)
+	func sessionDidBegin(_ session: WorkflowSession)
 
 	/// Marks the end of a `WorkflowSession`, indicating that the corresponding `WorkflowNode` has been removed from the tree of Workflows.
 	/// - Parameter session: The `WorkflowSession` that ended.
-	func sessionDidEnd(
-		_ session: WorkflowSession
-	)
+	func sessionDidEnd(_ session: WorkflowSession)
 
 	/// Indicates a `Workflow` produced its initial state value.
 	/// - Parameters:
@@ -132,9 +128,7 @@ public struct WorkflowSession {
 	}
 
 	public let workflowType: Any.Type
-
 	public let renderKey: String
-
 	public let sessionID = Identifier()
 
 	private let _indirectParent: IndirectParent
@@ -167,13 +161,8 @@ public struct WorkflowSession {
 // MARK: - No-op Defaults
 
 public extension WorkflowObserver {
-	func sessionDidBegin(
-		_ session: WorkflowSession
-	) {}
-
-	func sessionDidEnd(
-		_ session: WorkflowSession
-	) {}
+	func sessionDidBegin(_ session: WorkflowSession) {}
+	func sessionDidEnd(_ session: WorkflowSession) {}
 
 	func workflowDidMakeInitialState<WorkflowType: Workflow>(
 		_ workflow: WorkflowType,
@@ -305,11 +294,9 @@ final class ChainedWorkflowObserver: WorkflowObserver {
 				session: session
 			)
 		}
-
-		guard !callbacks.isEmpty else {
-			return nil
-		}
-
+		
+		guard !callbacks.isEmpty else { return nil }
+		
 		// Invoke the callbacks in reverse order.
 		// This enables the first observer to 'bookend' the method and
 		// other observer callbacks, which can useful if trying to implement
@@ -324,12 +311,7 @@ final class ChainedWorkflowObserver: WorkflowObserver {
 
 extension Array where Element == WorkflowObserver {
 	func chained() -> WorkflowObserver? {
-		if count <= 1 {
-			// no wrapping needed if empty or a single element
-			return first
-		} else {
-			return ChainedWorkflowObserver(observers: self)
-		}
+		count <= 1 ? first : ChainedWorkflowObserver(observers: self)
 	}
 }
 
@@ -351,15 +333,13 @@ public enum WorkflowObservation {
 
 	/// The `DefaultObserversProvider` used by all runtimes.
 	public static var sharedObserversInterceptor: ObserversInterceptor! {
-		get {
-			_sharedInterceptorStorage
-		}
+		get { _sharedInterceptorStorage }
 		set {
 			guard newValue != nil else {
 				_sharedInterceptorStorage = NoOpObserversInterceptor()
 				return
 			}
-
+			
 			_sharedInterceptorStorage = newValue
 		}
 	}

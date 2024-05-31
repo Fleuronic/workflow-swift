@@ -40,39 +40,31 @@ public final class WorkflowHostingController<ScreenType: Screen, Output>: UIView
 		rootViewEnvironment: ViewEnvironment = .empty,
 		observers: [WorkflowObserver] = []
 	) where W.Rendering == ScreenType, W.Output == Output {
-		self.workflowHost = WorkflowHost(
+		workflowHost = .init(
 			workflow: workflow.asAnyWorkflow(),
 			observers: observers
 		)
-	
-		self.rootViewController = workflowHost
-			.rendering
-			.value
-			.buildViewController(in: rootViewEnvironment)
-	
+		
+		rootViewController = workflowHost.rendering.value.buildViewController(in: rootViewEnvironment)
 		self.rootViewEnvironment = rootViewEnvironment
-	
+
 		super.init(nibName: nil, bundle: nil)
-	
+		
 		addChild(rootViewController)
 		rootViewController.didMove(toParent: self)
-	
+		
 		workflowHost
 			.rendering
 			.signal
 			.take(during: lifetime)
 			.observeValues { [weak self] screen in
 				guard let self = self else { return }
-	
+				
 				self.update(screen: screen, environment: self.rootViewEnvironment)
 			}
 	}
-	
-	@available(*, unavailable)
-	public required init?(coder aDecoder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
-	
+
+	// MARK: UIViewController
 	override public func viewDidLoad() {
 		super.viewDidLoad()
 		
@@ -121,6 +113,12 @@ public final class WorkflowHostingController<ScreenType: Screen, Output>: UIView
 		
 		guard container === rootViewController else { return }
 		updatePreferredContentSizeIfNeeded()
+	}
+	
+	// MARK: NSCoding
+	@available(*, unavailable)
+	public required init(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
 	}
 }
 

@@ -129,7 +129,7 @@ public class RenderContext<WorkflowType: Workflow>: RenderContextType {
 	}
 }
 
-internal protocol RenderContextType: AnyObject {
+protocol RenderContextType: AnyObject {
 	associatedtype WorkflowType: Workflow
 
 	func render<Child, Action>(workflow: Child, key: String, outputMap: @escaping (Child.Output) -> Action) -> Child.Rendering where Child: Workflow, Action: WorkflowAction, Action.WorkflowType == WorkflowType

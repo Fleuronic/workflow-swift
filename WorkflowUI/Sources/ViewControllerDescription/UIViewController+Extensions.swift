@@ -24,7 +24,7 @@ import ViewEnvironment
 public protocol UpdateChildScreenViewController: UIViewController {}
 
 // MARK: -
-extension UpdateChildScreenViewController {
+public extension UpdateChildScreenViewController {
 	/// Updates the view controller at the given `child` key path with the
 	/// `ViewControllerDescription` from `screen`. If the type of the underlying view
 	/// controller changes between update passes, this method will remove
@@ -38,7 +38,7 @@ extension UpdateChildScreenViewController {
 	/// - parameter environment: The `environment` to used when updating the view controller.
 	/// - parameter onChange: A callback called if the view controller instance changed.
 	///
-	public func update<ViewController: UIViewController, ScreenType: Screen>(child: ReferenceWritableKeyPath<Self, ViewController>, with screen: ScreenType, in environment: ViewEnvironment, onChange: (ViewController) -> Void = { _ in }) {
+	func update<ViewController: UIViewController, ScreenType: Screen>(child: ReferenceWritableKeyPath<Self, ViewController>, with screen: ScreenType, in environment: ViewEnvironment, onChange: (ViewController) -> Void = { _ in }) {
 		let description = screen.viewControllerDescription(environment: environment)
 		let existing = self[keyPath: child]
 		

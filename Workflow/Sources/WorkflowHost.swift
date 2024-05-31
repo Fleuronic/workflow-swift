@@ -85,6 +85,7 @@ public extension WorkflowHost {
 	}
 }
 
+// MARK: -
 private extension WorkflowHost {
 	func handle(output: WorkflowNode<WorkflowType>.Output) {
 		mutableRendering.value = rootNode.render(isRootNode: true)

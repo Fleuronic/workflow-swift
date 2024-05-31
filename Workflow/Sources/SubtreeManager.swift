@@ -160,15 +160,11 @@ extension WorkflowNode.SubtreeManager {
 			observer: WorkflowObserver?
 		) {
 			self.eventPipes = []
-
 			self.sinkStore = SinkStore(previousSinks: previousSinks)
-
 			self.originalChildWorkflows = originalChildWorkflows
 			self.usedChildWorkflows = [:]
-
 			self.originalSideEffectLifetimes = originalSideEffectLifetimes
 			self.usedSideEffectLifetimes = [:]
-
 			self.session = session
 			self.observer = observer
 		}

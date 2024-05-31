@@ -30,12 +30,8 @@ public final class DescribedViewController: UIViewController {
 		addChild(currentViewController)
 		currentViewController.didMove(toParent: self)
 	}
-		
-	@available(*, unavailable)
-	required init(coder: NSCoder) {
-		fatalError("init(coder:) is unavailable")
-	}
 	
+	// MARK: UIViewController
 	override public func viewDidLoad() {
 		super.viewDidLoad()
 		
@@ -84,6 +80,12 @@ public final class DescribedViewController: UIViewController {
 		guard container === currentViewController else { return }
 		updatePreferredContentSizeIfNeeded()
 	}
+	
+	// MARK: NSCoding
+	@available(*, unavailable)
+	required init(coder: NSCoder) {
+		fatalError("init(coder:) is unavailable")
+	}
 }
 
 // MARK: -
@@ -117,7 +119,10 @@ public extension DescribedViewController {
 		}
 	}
 
-	func update<S: Screen>(screen: S, environment: ViewEnvironment) {
+	func update<S: Screen>(
+		screen: S, 
+		environment: ViewEnvironment
+	) {
 		update(description: screen.viewControllerDescription(environment: environment))
 	}
 }
