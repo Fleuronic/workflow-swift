@@ -19,6 +19,10 @@ let package = Package(
 			targets: ["WorkflowUI"]
 		),
 		.library(
+			name: "WorkflowMenuUI",
+			targets: ["WorkflowMenuUI"]
+		),
+		.library(
 			name: "WorkflowContainers",
 			targets: ["WorkflowContainers"]
 		),
@@ -60,6 +64,16 @@ let package = Package(
 			name: "WorkflowUITests",
 			dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
 			path: "WorkflowUI/Tests"
+		),
+		.target(
+			name: "WorkflowMenuUI",
+			dependencies: ["Workflow", "ViewEnvironment"],
+			path: "WorkflowMenuUI/Sources"
+		),
+		.testTarget(
+			name: "WorkflowMenuUITests",
+			dependencies: ["WorkflowMenuUI", "WorkflowReactiveSwift"],
+			path: "WorkflowMenuUI/Tests"
 		),
 		.target(
 			name: "WorkflowContainers",
