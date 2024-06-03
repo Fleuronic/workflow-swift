@@ -45,7 +45,11 @@ public final class WorkflowHostingController<ScreenType: Screen, Output>: UIView
 			observers: observers
 		)
 		
-		rootViewController = workflowHost.rendering.value.buildViewController(in: rootViewEnvironment)
+		rootViewController = workflowHost
+			.rendering
+			.value
+			.buildViewController(in: rootViewEnvironment)
+			
 		self.rootViewEnvironment = rootViewEnvironment
 
 		super.init(nibName: nil, bundle: nil)

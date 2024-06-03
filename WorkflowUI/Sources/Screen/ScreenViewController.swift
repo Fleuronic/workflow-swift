@@ -85,7 +85,7 @@ public extension ScreenViewController {
 			performInitialUpdate: performInitialUpdate,
 			type: self,
 			build: { 
-				.init(
+				self.init(
 					screen: screen, 
 					environment: environment
 				) 
