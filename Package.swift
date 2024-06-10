@@ -31,12 +31,12 @@ let package = Package(
 			targets: ["WorkflowTesting"]
 		),
 		.library(
-			name: "WorkflowReactiveSwift",
-			targets: ["WorkflowReactiveSwift"]
+			name: "WorkflowConcurrency",
+			targets: ["WorkflowConcurrency"]
 		),
 		.library(
-			name: "WorkflowReactiveSwiftTesting",
-			targets: ["WorkflowReactiveSwiftTesting"]
+			name: "WorkflowConcurrencyTesting",
+			targets: ["WorkflowConcurrencyTesting"]
 		),
 		.library(
 			name: "ViewEnvironment",
@@ -62,7 +62,7 @@ let package = Package(
 		),
 		.testTarget(
 			name: "WorkflowUITests",
-			dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
+			dependencies: ["WorkflowUI", "WorkflowConcurrency"],
 			path: "WorkflowUI/Tests"
 		),
 		.target(
@@ -72,7 +72,7 @@ let package = Package(
 		),
 		.testTarget(
 			name: "WorkflowMenuUITests",
-			dependencies: ["WorkflowMenuUI", "WorkflowReactiveSwift"],
+			dependencies: ["WorkflowMenuUI", "WorkflowConcurrency"],
 			path: "WorkflowMenuUI/Tests"
 		),
 		.target(
@@ -91,24 +91,24 @@ let package = Package(
 			path: "WorkflowTesting/Tests"
 		),
 		.target(
-			name: "WorkflowReactiveSwift",
+			name: "WorkflowConcurrency",
 			dependencies: ["ReactiveSwift", "Workflow"],
-			path: "WorkflowReactiveSwift/Sources"
+			path: "WorkflowConcurrency/Sources"
 		),
 		.testTarget(
-			name: "WorkflowReactiveSwiftTests",
-			dependencies: ["WorkflowReactiveSwiftTesting"],
-			path: "WorkflowReactiveSwift/Tests"
+			name: "WorkflowConcurrencyTests",
+			dependencies: ["WorkflowConcurrencyTesting"],
+			path: "WorkflowConcurrency/Tests"
 		),
 		.target(
-			name: "WorkflowReactiveSwiftTesting",
-			dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
-			path: "WorkflowReactiveSwift/Testing"
+			name: "WorkflowConcurrencyTesting",
+			dependencies: ["WorkflowConcurrency", "WorkflowTesting"],
+			path: "WorkflowConcurrency/Testing"
 		),
 		.testTarget(
-			name: "WorkflowReactiveSwiftTestingTests",
-			dependencies: ["WorkflowReactiveSwiftTesting"],
-			path: "WorkflowReactiveSwift/TestingTests"
+			name: "WorkflowConcurrencyTestingTests",
+			dependencies: ["WorkflowConcurrencyTesting"],
+			path: "WorkflowConcurrency/TestingTests"
 		),
 		.target(
 			name: "ViewEnvironment",

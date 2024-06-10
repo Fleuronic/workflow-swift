@@ -1,6 +1,5 @@
 /*
  * Copyright 2020 Square Inc.
- * Copyright 2024 Fleuronic LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +14,13 @@
  * limitations under the License.
  */
 
-import ReactiveSwift
 import Workflow
-import WorkflowReactiveSwift
-import WorkflowReactiveSwiftTesting
+import WorkflowConcurrency
+import WorkflowConcurrencyTesting
 import WorkflowTesting
 import XCTest
 
-class WorkflowReactiveSwiftTestingTests: XCTestCase {
+class WorkflowConcurrencyTestingTests: XCTestCase {
 	func test_workers() {
 		let renderTester = TestWorkflow()
 			.renderTester(initialState: .init(mode: .worker(input: "otherText"), output: ""))
@@ -77,7 +75,7 @@ class WorkflowReactiveSwiftTestingTests: XCTestCase {
 		let tester = TestWorkflow()
 			.renderTester(initialState: .init(mode: .worker(input: "test"), output: ""))
 
-		expectingFailure(#"Unexpected workflow of type WorkerWorkflow<TestWorker> with key """#) {
+		expectingFailure(#"unexpected Workflow of type WorkerWorkflow<TestWorker> with key """#) {
 			tester.render { _ in }
 		}
 	}
@@ -170,13 +168,13 @@ private struct TestWorkflow: Workflow {
 }
 
 private struct TestWorker: Worker {
+	typealias Output = String
+
 	let input: String
 
-	func run() -> SignalProducer<String, Never> {
-		return SignalProducer(value: input)
+	func run() async -> String {
+		return input
 	}
 
-	func isEquivalent(to otherWorker: TestWorker) -> Bool {
-		input == otherWorker.input
-	}
+	func isEquivalent(to otherWorker: TestWorker) -> Bool { input == otherWorker.input }
 }

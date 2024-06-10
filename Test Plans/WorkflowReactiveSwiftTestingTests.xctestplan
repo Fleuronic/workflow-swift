@@ -15,8 +15,8 @@
     {
       "target" : {
         "containerPath" : "container:",
-        "identifier" : "WorkflowReactiveSwiftTestingTests",
-        "name" : "WorkflowReactiveSwiftTestingTests"
+        "identifier" : "WorkflowConcurrencyTestingTests",
+        "name" : "WorkflowConcurrencyTestingTests"
       }
     }
   ],

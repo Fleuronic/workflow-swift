@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
- * Copyright 2024 Fleuronic LLC
+ * Copyright 2021 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +16,22 @@
 
 import os.signpost
 
-/// Namespace for Worker logging
-public enum WorkerLogging {}
-
-// MARK: -
-public extension WorkerLogging {
-	static var enabled: Bool {
-		get { OSLog.active === OSLog.worker }
-		set { OSLog.active = newValue ? .worker : .disabled }
-	}
+private extension OSLog {
+	static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
 }
 
-// MARK: -
-/// Logs Worker events to OSLog
+// Logs Worker events to OSLog
 final class WorkerLogger<WorkerType: Worker> {
 	init() {}
-}
 
-// MARK: -
-extension WorkerLogger {
-	var signpostID: OSSignpostID { 
-		.init(
-			log: .active, 
-			object: self
-		) 
-	}
+	var signpostID: OSSignpostID { OSSignpostID(log: .worker, object: self) }
+
+	// MARK: - Workers
 
 	func logStarted() {
 		os_signpost(
 			.begin,
-			log: .active,
+			log: .worker,
 			name: "Running",
 			signpostID: signpostID,
 			"Worker: %{private}@",
@@ -56,10 +41,10 @@ extension WorkerLogger {
 
 	func logFinished(status: StaticString) {
 		os_signpost(
-			.end, 
-			log: .active, 
-			name: "Running", 
-			signpostID: signpostID, 
+			.end,
+			log: .worker,
+			name: "Running",
+			signpostID: signpostID,
 			status
 		)
 	}
@@ -67,21 +52,11 @@ extension WorkerLogger {
 	func logOutput() {
 		os_signpost(
 			.event,
-			log: .active,
+			log: .worker,
 			name: "Worker Event",
 			signpostID: signpostID,
 			"Event: %{private}@",
 			String(describing: WorkerType.self)
 		)
 	}
-}
-
-// MARK: -
-private extension OSLog {
-	static let worker = OSLog(
-		subsystem: "com.squareup.WorkflowReactiveSwift", 
-		category: "Worker"
-	)
-
-	static var active: OSLog = .disabled
 }

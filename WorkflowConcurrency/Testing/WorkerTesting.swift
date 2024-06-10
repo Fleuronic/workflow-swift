@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
- * Copyright 2024 Fleuronic LLC
+ * Copyright 2022 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +18,7 @@
 import Workflow
 import WorkflowTesting
 import XCTest
-@testable import WorkflowReactiveSwift
+@testable import WorkflowConcurrency
 
 extension RenderTester {
 	/// Expect the given worker. It will be checked for `isEquivalent(to:)` with the requested worker.

@@ -21,7 +21,7 @@ import XCTest
 
 import ReactiveSwift
 import Workflow
-import WorkflowReactiveSwift
+import WorkflowConcurrency
 import ViewEnvironment
 @testable import WorkflowUI
 

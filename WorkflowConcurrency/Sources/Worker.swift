@@ -1,6 +1,5 @@
 /*
- * Copyright 2020 Square Inc.
- * Copyright 2024 Fleuronic LLC
+ * Copyright 2021 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +16,6 @@
 
 import Foundation
 import Workflow
-import ReactiveSwift
 
 /// Workers define a unit of asynchronous work.
 ///
@@ -31,36 +29,23 @@ public protocol Worker<Output>: AnyWorkflowConvertible where Rendering == Void {
 	/// The type of output events returned by this worker.
 	associatedtype Output
 
-	/// Returns a signal producer to execute the work represented by this worker.
-	func run() -> SignalProducer<Output, Never>
-
+	/// Execute the work represented by this worker asynchronously and return the result.
+	func run() async -> Output
 	/// Returns `true` if the other worker should be considered equivalent to `self`. Equivalence should take into
 	/// account whatever data is meaningful to the task. For example, a worker that loads a user account from a server
 	/// would not be equivalent to another worker with a different user ID.
 	func isEquivalent(to otherWorker: Self) -> Bool
 }
 
-// MARK: -
-public extension Worker {
-	func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
+extension Worker {
+	public func asAnyWorkflow() -> AnyWorkflow<Void, Output> {
 		WorkerWorkflow(worker: self).asAnyWorkflow()
 	}
 }
 
-// MARK: -
-extension Worker where Self: Equatable {
-	public func isEquivalent(to otherWorker: Self) -> Bool {
-		self == otherWorker
-	}
-}
-
-// MARK: -
-struct WorkerWorkflow<WorkerType: Worker> {
+struct WorkerWorkflow<WorkerType: Worker>: Workflow {
 	let worker: WorkerType
-}
 
-// MARK: -
-extension WorkerWorkflow: Workflow {
 	typealias Output = WorkerType.Output
 	typealias Rendering = Void
 	typealias State = UUID
@@ -69,39 +54,36 @@ extension WorkerWorkflow: Workflow {
 
 	func workflowDidChange(from previousWorkflow: WorkerWorkflow<WorkerType>, state: inout UUID) {
 		if !worker.isEquivalent(to: previousWorkflow.worker) {
-			state = .init()
+			state = UUID()
 		}
 	}
 
-	func render(
-		state: State, 
-		context: RenderContext<WorkerWorkflow>
-	) -> Rendering {
+	func render(state: State, context: RenderContext<WorkerWorkflow>) -> Rendering {
 		let logger = WorkerLogger<WorkerType>()
-
-		// Start with Void to ensure `worker.run()` is called only once for a given key
-		SignalProducer(value: ())
-			.flatMap(.latest) { self.worker.run() }
-			.on(
-				started: { logger.logStarted() },
-				event: { logger.log(event: $0) }
-			)
-			.mapOutput { AnyWorkflowAction(sendingOutput: $0) }
-			.running(in: context, key: state.uuidString)
-	}
-}
-
-// MARK: -
-private extension WorkerLogger {
-	func log(event: SignalProducer<WorkerType.Output, Never>.ProducedSignal.Event) {
-		switch event {
-		case .completed:
-			logFinished(status: "Completed")
-		case .interrupted:
-			logFinished(status: "Interrupted")
-		case .value:
-			logOutput()
+		let sink = context.makeOutputSink()
+		context.runSideEffect(key: state) { lifetime in
+			let send: @MainActor(Output) -> Void = sink.send
+			let task = Task {
+				logger.logStarted()
+				let output = await worker.run()
+				if Task.isCancelled {
+					logger.logFinished(status: "Cancelled")
+					logger.logFinished(status: "Finished")
+					return
+				}
+				logger.logOutput()
+				logger.logFinished(status: "Finished")
+				await send(output)
+			}
+			lifetime.onEnded {
+				task.cancel()
+			}
 		}
 	}
 }
 
+extension Worker where Self: Equatable {
+	public func isEquivalent(to otherWorker: Self) -> Bool {
+		self == otherWorker
+	}
+}
