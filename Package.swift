@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 import PackageDescription
 
 let package = Package(
@@ -39,11 +39,19 @@ let package = Package(
 			targets: ["WorkflowConcurrencyTesting"]
 		),
 		.library(
+			name: "WorkflowReactiveSwift",
+			targets: ["WorkflowReactiveSwift"]
+		),
+		.library(
+			name: "WorkflowReactiveSwiftTesting",
+			targets: ["WorkflowReactiveSwiftTesting"]
+		),
+		.library(
 			name: "ViewEnvironment",
 			targets: ["ViewEnvironment"]
 		)
 	],
-	dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", from: "7.1.1")],
+	dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", branch: "sendable")],
 	targets: [
 		.target(
 			name: "Workflow",
@@ -92,7 +100,7 @@ let package = Package(
 		),
 		.target(
 			name: "WorkflowConcurrency",
-			dependencies: ["ReactiveSwift", "Workflow"],
+			dependencies: ["Workflow"],
 			path: "WorkflowConcurrency/Sources"
 		),
 		.testTarget(
@@ -109,6 +117,26 @@ let package = Package(
 			name: "WorkflowConcurrencyTestingTests",
 			dependencies: ["WorkflowConcurrencyTesting"],
 			path: "WorkflowConcurrency/TestingTests"
+		),
+		.target(
+			name: "WorkflowReactiveSwift",
+			dependencies: ["ReactiveSwift", "Workflow"],
+			path: "WorkflowReactiveSwift/Sources"
+		),
+		.testTarget(
+			name: "WorkflowReactiveSwiftTests",
+			dependencies: ["WorkflowReactiveSwiftTesting"],
+			path: "WorkflowReactiveSwift/Tests"
+		),
+		.target(
+			name: "WorkflowReactiveSwiftTesting",
+			dependencies: ["WorkflowReactiveSwift", "WorkflowTesting"],
+			path: "WorkflowReactiveSwift/Testing"
+		),
+		.testTarget(
+			name: "WorkflowReactiveSwiftTestingTests",
+			dependencies: ["WorkflowReactiveSwiftTesting"],
+			path: "WorkflowReactiveSwift/TestingTests"
 		),
 		.target(
 			name: "ViewEnvironment",
