@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 import UIKit
 import WorkflowUI
 import ViewEnvironment
@@ -22,3 +24,5 @@ extension BackStack.Screen: Screen {
 		BackStack.Container.description(for: self, environment: environment)
 	}
 }
+
+#endif

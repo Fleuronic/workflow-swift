@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 import UIKit
 import Workflow
 import WorkflowUI
@@ -97,3 +99,5 @@ private extension UIAlertAction.Style {
 		self.init(rawValue: style.rawValue)!
 	}
 }
+
+#endif

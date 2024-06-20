@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 public extension Bar {
 	struct ButtonItem {
 		var content: Content
@@ -17,3 +19,5 @@ public extension Bar {
 		}
 	}
 }
+
+#endif

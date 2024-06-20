@@ -85,7 +85,7 @@ let package = Package(
 		),
 		.target(
 			name: "WorkflowContainers",
-			dependencies: ["WorkflowUI"],
+			dependencies: ["WorkflowUI", "WorkflowMenuUI"],
 			path: "WorkflowContainers/Sources"
 		),
 		.target(

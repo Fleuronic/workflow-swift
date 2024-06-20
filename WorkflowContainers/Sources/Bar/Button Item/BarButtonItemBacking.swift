@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 import UIKit
 
 extension Bar.ButtonItem {
@@ -49,3 +51,5 @@ extension Bar.ButtonItem.Backing {
 		handler()
 	}
 }
+
+#endif

@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 import UIKit
 
 public extension Bar.ButtonItem {
@@ -10,3 +12,5 @@ public extension Bar.ButtonItem {
 		case back(title: String?)
 	}
 }
+
+#endif

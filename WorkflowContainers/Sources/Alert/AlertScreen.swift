@@ -1,3 +1,5 @@
+#if canImport(UIKit)
+
 import UIKit
 import WorkflowUI
 import ViewEnvironment
@@ -23,3 +25,5 @@ extension Alert.Screen: Screen {
 		Alert.ViewController.description(for: self, environment: environment)
 	}
 }
+
+#endif

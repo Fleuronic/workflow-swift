@@ -1,21 +1,19 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
-#if canImport(UIKit)
+import WorkflowMenuUI
 
-public extension BackStack.Screen {
-	struct Item {
+public extension Menu.Screen {
+	struct Section {
 		let key: AnyHashable
 		let screen: ScreenType
-		let barVisibility: Bar.Visibility
 	}
 }
 
 // MARK: -
-public extension BackStack.Screen.Item {
+public extension Menu.Screen.Section {
 	init<Key: Hashable>(
 		key: Key? = AnyHashable?.none,
-		screen: ScreenType,
-		barContent: Bar.Content = .init()
+		screen: ScreenType
 	) {
 		self.screen = screen
 
@@ -24,9 +22,5 @@ public extension BackStack.Screen.Item {
 		} else {
 			self.key = .init(ObjectIdentifier(ScreenType.self))
 		}
-
-		barVisibility = .visible(barContent)
 	}
 }
-
-#endif

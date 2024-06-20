@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(UIKit)
+
 import UIKit
 import WorkflowUI
 import ViewEnvironment
@@ -85,3 +87,6 @@ private extension BackStackViewController {
 		navigationItem.title = barContent.title ?? ""
 	}
 }
+
+#endif
+
