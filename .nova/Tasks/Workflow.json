@@ -2,7 +2,11 @@
   "actions" : {
     "build" : {
       "enabled" : true,
-      "script" : "#!\/bin\/sh\nxcodebuild -quiet -scheme Workflow -destination generic\/platform=iOS"
+      "script" : "#!\/bin\/sh\nswift build \\\n\t--target Workflow \\\n\t-Xswiftc \"-target\" \\\n\t-Xswiftc \"arm64-apple-macosx14.0\" \\"
+    },
+    "run" : {
+      "enabled" : true,
+      "script" : "#!\/bin\/sh\nswift package update"
     }
   }
 }
