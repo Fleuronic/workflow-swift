@@ -51,7 +51,7 @@ let package = Package(
 			targets: ["ViewEnvironment"]
 		)
 	],
-	dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", branch: "master")],
+	dependencies: [.package(url: "https://github.com/ReactiveCocoa/ReactiveSwift.git", branch: "swift-concurrency")],
 	targets: [
 		.target(
 			name: "Workflow",
