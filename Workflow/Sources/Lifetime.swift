@@ -20,7 +20,7 @@ import Foundation
 /// Represents the lifetime of an object.
 ///
 /// Once ended, the `onEnded` closure is called.
-public final class Lifetime {
+public final class Lifetime: @unchecked Sendable {
 	public private(set) var hasEnded: Bool = false
 	
 	private var onEndedActions: [() -> Void] = []
