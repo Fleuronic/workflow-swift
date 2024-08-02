@@ -18,11 +18,11 @@
 /// Sink is a type that receives incoming values (commonly events or `WorkflowAction`)
 ///
 /// Use `RenderContext.makeSink` to create instances.
-public struct Sink<Value> {
-	private let onValue: (Value) -> Void
+public struct Sink<Value>: Sendable {
+	private let onValue: @Sendable (Value) -> Void
 
 	/// Initializes a new sink with the given closure.
-	public init(_ onValue: @escaping (Value) -> Void) {
+	public init(_ onValue: @Sendable @escaping (Value) -> Void) {
 		self.onValue = onValue
 	}
 }
