@@ -1,13 +1,13 @@
 {
-  "originHash" : "60fa53fabe67daaf02ada966f41757acf3a5694f69329dcce127c711078eb56a",
+  "originHash" : "28ce6524230a8242ca3f211ce216424c2ad7361e312317e19075afe9868e2302",
   "pins" : [
     {
       "identity" : "reactiveswift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ReactiveCocoa/ReactiveSwift.git",
+      "location" : "https://github.com/Fleuronic/ReactiveSwift.git",
       "state" : {
-        "branch" : "sendable",
-        "revision" : "302100cf9c31f9d63991e7c7167374247932fe88"
+        "branch" : "swift-concurrency",
+        "revision" : "d5a275b4b3d57872f6a77aa76cd70942baba4d9d"
       }
     }
   ],
