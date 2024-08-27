@@ -12,6 +12,12 @@ final class MenuDelegate: NSObject, NSMenuDelegate {
 			delegate.menuWillOpen?(menu)
 		}
 	}
+
+	func menuDidClose(_ menu: NSMenu) {
+		subDelegates.values.forEach { delegate in
+			delegate.menuDidClose?(menu)
+		}
+	}
 }
 
 #endif
