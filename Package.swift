@@ -51,7 +51,7 @@ let package = Package(
 			targets: ["ViewEnvironment"]
 		)
 	],
-	dependencies: [.package(url: "https://github.com/Fleuronic/ReactiveSwift.git", branch: "master")],
+	dependencies: [.package(url: "https://github.com/Fleuronic/ReactiveSwift.git", branch: "main")],
 	targets: [
 		.target(
 			name: "Workflow",
