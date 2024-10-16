@@ -1,5 +1,4 @@
 {
-  "originHash" : "36a468c3435177fafa8d8ca062629e0991fb8820c55c23b4492dbd56af5d1350",
   "pins" : [
     {
       "identity" : "reactiveswift",
@@ -11,5 +10,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

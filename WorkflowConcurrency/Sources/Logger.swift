@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+#if canImport(os.signpost)
 import os.signpost
+#endif
 
 private extension OSLog {
 	static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
@@ -29,6 +31,7 @@ final class WorkerLogger<WorkerType: Worker> {
 	// MARK: - Workers
 
 	func logStarted() {
+		#if canImport(os.signpost)
 		os_signpost(
 			.begin,
 			log: .worker,
@@ -37,9 +40,11 @@ final class WorkerLogger<WorkerType: Worker> {
 			"Worker: %{private}@",
 			String(describing: WorkerType.self)
 		)
+		#endif
 	}
 
 	func logFinished(status: StaticString) {
+		#if canImport(os.signpost)
 		os_signpost(
 			.end,
 			log: .worker,
@@ -47,9 +52,11 @@ final class WorkerLogger<WorkerType: Worker> {
 			signpostID: signpostID,
 			status
 		)
+		#endif
 	}
 
 	func logOutput() {
+		#if canImport(os.signpost)
 		os_signpost(
 			.event,
 			log: .worker,
@@ -58,5 +65,6 @@ final class WorkerLogger<WorkerType: Worker> {
 			"Event: %{private}@",
 			String(describing: WorkerType.self)
 		)
+		#endif
 	}
 }

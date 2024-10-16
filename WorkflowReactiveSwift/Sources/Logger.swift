@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+#if canImport(os.signpost)
 import os.signpost
+#endif
 
 /// Namespace for Worker logging
 public enum WorkerLogging {}
@@ -44,6 +46,7 @@ extension WorkerLogger {
 	}
 
 	func logStarted() {
+		#if canImport(os.signpost)
 		os_signpost(
 			.begin,
 			log: .active,
@@ -52,9 +55,11 @@ extension WorkerLogger {
 			"Worker: %{private}@",
 			String(describing: WorkerType.self)
 		)
+		#endif
 	}
 
 	func logFinished(status: StaticString) {
+		#if canImport(os.signpost)
 		os_signpost(
 			.end, 
 			log: .active, 
@@ -62,9 +67,11 @@ extension WorkerLogger {
 			signpostID: signpostID, 
 			status
 		)
+		#endif
 	}
 
 	func logOutput() {
+		#if canImport(os.signpost)
 		os_signpost(
 			.event,
 			log: .active,
@@ -73,6 +80,7 @@ extension WorkerLogger {
 			"Event: %{private}@",
 			String(describing: WorkerType.self)
 		)
+		#endif
 	}
 }
 

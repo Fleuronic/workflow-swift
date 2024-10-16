@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+#if canImport(os.signpost)
 import os.signpost
+#endif
 
 private extension OSLog {
 	/// Logging will use this log handle when enabled
@@ -96,6 +98,7 @@ final class WorkflowLogger {
 	static func logWorkflowStarted<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
 		guard WorkflowLogging.config.logLifetimes else { return }
 
+		#if canImport(os.signpost)
 		let signpostID = OSSignpostID(log: .active, object: ref)
 		os_signpost(
 			.begin,
@@ -105,18 +108,22 @@ final class WorkflowLogger {
 			"Workflow: %{public}@",
 			String(describing: WorkflowType.self)
 		)
+		#endif
 	}
 
 	static func logWorkflowFinished<WorkflowType>(ref: WorkflowNode<WorkflowType>) {
 		guard WorkflowLogging.config.logLifetimes else { return }
 
+		#if canImport(os.signpost)
 		let signpostID = OSSignpostID(log: .active, object: ref)
 		os_signpost(.end, log: .active, name: "Alive", signpostID: signpostID)
+		#endif
 	}
 
 	static func logSinkEvent<Action: WorkflowAction>(ref: AnyObject, action: Action) {
 		guard WorkflowLogging.config.logActions else { return }
 
+		#if canImport(os.signpost)
 		let signpostID = OSSignpostID(log: .active, object: ref)
 		os_signpost(
 			.event,
@@ -126,6 +133,7 @@ final class WorkflowLogger {
 			"Event for workflow: %{public}@",
 			String(describing: Action.WorkflowType.self)
 		)
+		#endif
 	}
 
 	// MARK: Rendering
@@ -138,6 +146,7 @@ final class WorkflowLogger {
 			isRootNode: isRootNode
 		) else { return }
 
+		#if canImport(os.signpost)
 		let signpostID = OSSignpostID(log: .active, object: ref)
 		os_signpost(
 			.begin,
@@ -147,6 +156,7 @@ final class WorkflowLogger {
 			"Render Workflow: %{public}@",
 			String(describing: WorkflowType.self)
 		)
+		#endif
 	}
 
 	static func logWorkflowFinishedRendering<WorkflowType>(
@@ -157,8 +167,10 @@ final class WorkflowLogger {
 			isRootNode: isRootNode
 		) else { return }
 
+		#if canImport(os.signpost)
 		let signpostID = OSSignpostID(log: .active, object: ref)
 		os_signpost(.end, log: .active, name: "Render", signpostID: signpostID)
+		#endif
 	}
 
 	// MARK: - Utilities
