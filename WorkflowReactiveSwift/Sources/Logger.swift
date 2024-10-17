@@ -17,7 +17,6 @@
 
 #if canImport(os.signpost)
 import os.signpost
-#endif
 
 /// Namespace for Worker logging
 public enum WorkerLogging {}
@@ -29,6 +28,7 @@ public extension WorkerLogging {
 		set { OSLog.active = newValue ? .worker : .disabled }
 	}
 }
+#endif
 
 // MARK: -
 /// Logs Worker events to OSLog
@@ -38,12 +38,14 @@ final class WorkerLogger<WorkerType: Worker> {
 
 // MARK: -
 extension WorkerLogger {
-	var signpostID: OSSignpostID { 
+	#if canImport(os.signpost)
+	var signpostID: OSSignpostID {
 		.init(
 			log: .active, 
 			object: self
 		) 
 	}
+	#endif
 
 	func logStarted() {
 		#if canImport(os.signpost)
@@ -85,6 +87,7 @@ extension WorkerLogger {
 }
 
 // MARK: -
+#if canImport(os.signpost)
 private extension OSLog {
 	static let worker = OSLog(
 		subsystem: "com.squareup.WorkflowReactiveSwift", 
@@ -93,3 +96,4 @@ private extension OSLog {
 
 	static var active: OSLog = .disabled
 }
+#endif

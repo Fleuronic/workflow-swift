@@ -16,17 +16,19 @@
 
 #if canImport(os.signpost)
 import os.signpost
-#endif
 
 private extension OSLog {
 	static let worker = OSLog(subsystem: "com.squareup.WorkflowConcurrency", category: "Worker")
 }
+#endif
 
 // Logs Worker events to OSLog
 final class WorkerLogger<WorkerType: Worker> {
 	init() {}
 
+	#if canImport(os.signpost)
 	var signpostID: OSSignpostID { OSSignpostID(log: .worker, object: self) }
+	#endif
 
 	// MARK: - Workers
 

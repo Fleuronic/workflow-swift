@@ -17,7 +17,7 @@
 
 #if canImport(os.signpost)
 import os.signpost
-#endif
+
 
 private extension OSLog {
 	/// Logging will use this log handle when enabled
@@ -26,6 +26,7 @@ private extension OSLog {
 	/// The active log handle to use when logging. Defaults to the shared `.disabled` handle.
 	static var active: OSLog = .disabled
 }
+#endif
 
 // MARK: -
 
@@ -65,10 +66,16 @@ extension WorkflowLogging {
 	///
 	/// If you wish for more control over what the runtime will log, you may additionally specify
 	/// a custom value for `WorkflowLogging.config`.
+	#if canImport(os.signpost)
 	public static var enabled: Bool {
 		get { OSLog.active === OSLog.workflow }
 		set { OSLog.active = newValue ? .workflow : .disabled }
 	}
+	#else
+	public static var enabled: Bool {
+		false
+	}
+	#endif
 
 	/// Configuration options used to determine which activities are logged.
 	public static var config: Config = .rootRendersAndActions
