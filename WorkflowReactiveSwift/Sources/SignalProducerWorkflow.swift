@@ -37,7 +37,7 @@ import ReactiveSwift
 ///     return MyScreen()
 /// }
 /// ```
-extension SignalProducer: AnyWorkflowConvertible where Error == Never {
+extension SignalProducer: @retroactive AnyWorkflowConvertible where Error == Never {
 	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
 		SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
 	}
