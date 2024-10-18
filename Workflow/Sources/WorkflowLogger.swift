@@ -18,7 +18,6 @@
 #if canImport(os.signpost)
 import os.signpost
 
-
 private extension OSLog {
 	/// Logging will use this log handle when enabled
 	static let workflow = OSLog(subsystem: "com.squareup.Workflow", category: "Workflow")
