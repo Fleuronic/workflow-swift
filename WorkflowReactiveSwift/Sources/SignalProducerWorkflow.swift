@@ -37,11 +37,19 @@ import ReactiveSwift
 ///     return MyScreen()
 /// }
 /// ```
+#if compiler(<6.0)
+extension SignalProducer: AnyWorkflowConvertible where Error == Never {
+	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
+		SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
+	}
+}
+#else
 extension SignalProducer: @retroactive AnyWorkflowConvertible where Error == Never {
 	public func asAnyWorkflow() -> AnyWorkflow<Void, Value> {
 		SignalProducerWorkflow(signalProducer: self).asAnyWorkflow()
 	}
 }
+#endif
 
 // MARK: -
 struct SignalProducerWorkflow<Value> {

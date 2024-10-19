@@ -1,5 +1,7 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
+#if canImport(AppKit)
+
 import WorkflowMenuUI
 
 public extension Menu.Screen {
@@ -24,3 +26,5 @@ public extension Menu.Screen.Section {
 		}
 	}
 }
+
+#endif
