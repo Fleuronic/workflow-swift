@@ -1,4 +1,4 @@
-#if canImport(UIKit) && !os(watchOS)
+#if canImport(UIKit) && !os(watchOS) && !os(tvOS)
 
 import UIKit
 import WorkflowUI
