@@ -1,6 +1,6 @@
 // Copyright © Fleuronic LLC. All rights reserved.
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 
 import UIKit
 import WorkflowUI

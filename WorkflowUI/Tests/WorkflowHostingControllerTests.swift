@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 
 import XCTest
 
 import ReactiveSwift
 import Workflow
-import WorkflowConcurrency
 import ViewEnvironment
+import WorkflowReactiveSwift
 @testable import WorkflowUI
 
 fileprivate struct TestScreen: Screen {

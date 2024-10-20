@@ -70,7 +70,7 @@ let package = Package(
 		),
 		.testTarget(
 			name: "WorkflowUITests",
-			dependencies: ["WorkflowUI", "WorkflowConcurrency"],
+			dependencies: ["WorkflowUI", "WorkflowReactiveSwift"],
 			path: "WorkflowUI/Tests"
 		),
 		.target(

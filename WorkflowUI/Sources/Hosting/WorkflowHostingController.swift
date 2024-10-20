@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 
 import UIKit
 import Workflow
@@ -83,7 +83,8 @@ public final class WorkflowHostingController<ScreenType: Screen, Output>: UIView
 		super.viewDidLayoutSubviews()
 		rootViewController.view.frame = view.bounds
 	}
-	
+
+	#if !os(tvOS)
 	override public var childForStatusBarStyle: UIViewController? {
 		rootViewController
 	}
@@ -111,7 +112,8 @@ public final class WorkflowHostingController<ScreenType: Screen, Output>: UIView
 	override public var childViewControllerForPointerLock: UIViewController? {
 		rootViewController
 	}
-	
+	#endif
+
 	override public func preferredContentSizeDidChange(forChildContentContainer container: UIContentContainer) {
 		super.preferredContentSizeDidChange(forChildContentContainer: container)
 		

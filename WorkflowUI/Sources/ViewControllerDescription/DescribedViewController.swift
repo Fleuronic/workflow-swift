@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 
 import UIKit
 import ViewEnvironment
@@ -45,7 +45,8 @@ public final class DescribedViewController: UIViewController {
 		super.viewDidLayoutSubviews()
 		currentViewController.view.frame = view.bounds
 	}
-	
+
+	#if !os(tvOS)
 	override public var childForStatusBarStyle: UIViewController? {
 		currentViewController
 	}
@@ -73,7 +74,8 @@ public final class DescribedViewController: UIViewController {
 	override public var childViewControllerForPointerLock: UIViewController? {
 		currentViewController
 	}
-	
+	#endif
+
 	override public func preferredContentSizeDidChange(forChildContentContainer container: UIContentContainer) {
 		super.preferredContentSizeDidChange(forChildContentContainer: container)
 		
